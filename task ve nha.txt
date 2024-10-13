@@ -1,0 +1,51 @@
+- mapping du lieu (viet thanh func)
+- format dayjs (theo dang giong ben khoa thuc tap)
+- general articles (api: bỏ key orderby)
+- nút tải thêm, mỗi lần load 2 bài, hết bài viết ẩn nút 
+
+
+
+- Copy SearchPage -> CategoryPage
+- Khai báo router: localxx/category/:slug -> CategoryPage
+- Bổ sung lấy thêm slug khi mapping
+- sử dụng Link để tạo url đến trang category với slug
+- CategoryPage -> lấy slug từ url -> dispatch action lấy bài viết thông qua slug category
+- xử lý action ở Slice
+    + gọi category service lấy thông tin của category thông qua slug -> category id
+    +  gọi post service lấy danh sách bài viết theo category id
+
+
+PostDetailPage
+- lấy slug từ url
+- dispatch action lấy chi tiết bài viết thông qua slug
+- action ở Slice
+    + gọi post service lấy chi tiết bài viết thông qua slug -> post id, author id
+    +  gọi post service lấy bài viết liên quan -> bài viết cùng tác giả nhưng khác bài viết đang xem (author: author id, exclude: post id)
+    
+
+Auth 
+
+    dispatch action => lấy token => set vào local => thành công thì đưa về trang chủ
+
+
+ProfilePage
+- bổ sung input file để upload avatar
+- hiển thị avatar cũ
+- khi người dùng chọn avatar mới thì phải hiển thị ảnh avatar mới 
+
+1. không thay đổi avatar (không có chọn ảnh) -> vẫn cập nhật các thông tin như bình thường
+2. có thay đổi avatar -> upload ảnh trước -> media id -> update thông tin kèm theo media_id
+
+- sau khi add comment render lên trên đầu 
+
+
+
+Profile
+CategoryList
+CategoryCreate
+PostList
+PostCreate
+
+React Hook Form
+
+Category: List, edit, delete, pagination, sort, search

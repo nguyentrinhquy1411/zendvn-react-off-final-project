@@ -1,0 +1,19 @@
+.profile-menu-item {
+    color: white !important;
+}
+
+/* styles.css */
+.logo-container {
+    margin-top: 15px;
+}
+
+.logo {
+    width: 100px;
+    /* Adjust width as needed */
+    height: auto;
+    /* Maintain aspect ratio */
+    display: block;
+    /* Makes the margin auto work */
+    margin: 0 auto;
+    /* Center horizontally */
+}
