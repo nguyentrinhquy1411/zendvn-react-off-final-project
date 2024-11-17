@@ -1,11 +1,12 @@
-import React, { useEffect, useRef, useState } from 'react';
 import { SearchOutlined } from '@ant-design/icons';
-import { Button, Input, Space, Table, Popconfirm } from 'antd';
+import { Button, Input, Popconfirm, Space, Table } from 'antd';
+import React, { useEffect, useRef, useState } from 'react';
 import Highlighter from 'react-highlight-words';
-import { Link } from 'react-router-dom';
 import { useDispatch, useSelector } from 'react-redux';
-import { actSaveCategoryInfo, fetchCategories, fetchDeleteCategory } from '../../../store/categorySlice';
+import { Link } from 'react-router-dom';
+import { actSaveCategoryInfo, fetchAdminCategories, fetchDeleteCategory } from '../../../store/categorySlice';
 
+/*
 const dataSource = [
   {
     key: '1',
@@ -32,36 +33,45 @@ const dataSource = [
     address: 'London No. 2 Lake Park',
   },
 ];
+*/
 
 const Index = () => {
   const [searchText, setSearchText] = useState('');
   const [searchedColumn, setSearchedColumn] = useState('');
+  const [loading, setLoading] = useState(false);
   const searchInput = useRef(null);
   const dispatch = useDispatch();
-  const categoryList = useSelector((state) => state.CATEGORY.list);
-  const [data, setData] = useState([]);
+  const data = useSelector((state) => state.CATEGORY.adminList.list);
+  const [pagination, setPagination] = useState({
+    current: 1,
+    pageSize: 3,
+    total: 0,
+  });
+
+  console.log('data', data);
 
   useEffect(() => {
-    dispatch(fetchCategories());
-  }, [dispatch]);
-
-  useEffect(() => {
-    if (categoryList && categoryList.length > 0) {
-      setData(categoryList.map(mappingCategoryList));
-    }
-  }, [categoryList]);
-
-  function mappingCategoryList(item) {
-    return {
-      ...item,
-      key: item.id,
-    };
-  }
+    dispatch(fetchAdminCategories({ page: pagination.current, per_page: pagination.pageSize })).then((res) => {
+      setPagination({ ...pagination, total: res.payload?.total });
+      setLoading(false);
+    });
+  }, [pagination.current]);
 
   const handleSearch = (selectedKeys, confirm, dataIndex) => {
     confirm();
     setSearchText(selectedKeys[0]);
-    setSearchedColumn(dataIndex);
+    // setSearchedColumn(dataIndex);
+    dispatch(
+      fetchAdminCategories({
+        page: 1, // Reset to the first page on a new search
+        per_page: pagination.pageSize, // Keep the current page size
+        search: selectedKeys[0], // Use the entered search text
+      })
+    ).then((res) => {
+      // Update the pagination's total count if necessary
+      setPagination({ ...pagination, current: 1, total: res.payload?.total });
+      setLoading(false);
+    });
   };
 
   const handleReset = (clearFilters) => {
@@ -163,21 +173,19 @@ const Index = () => {
       ),
   });
 
-  const handleDelete = async (key) => {
-    try {
-      // Dispatch the delete action and wait for it to finish
-      await dispatch(fetchDeleteCategory(key));
-
-      // After successful deletion, filter the deleted item out of `data`
-      setData((prevData) => prevData.filter((item) => item.key !== key));
-    } catch (error) {
-      console.error('Failed to delete category:', error);
-    }
+  const handleDelete = async (id) => {
+    dispatch(fetchDeleteCategory(id));
   };
+
+  function handleTableChange(newPagination) {
+    setLoading(!loading);
+    setPagination({ ...pagination, current: newPagination.current });
+  }
 
   const handleEdit = (key) => {
     console.log('Edit record:', key);
     dispatch(actSaveCategoryInfo(key));
+    // You can implement a modal or form to edit the record here
   };
 
   const columns = [
@@ -193,7 +201,6 @@ const Index = () => {
       dataIndex: 'slug',
       key: 'slug',
       width: '40%',
-      ...getColumnSearchProps('slug'),
     },
     {
       title: 'Action',
@@ -201,9 +208,9 @@ const Index = () => {
       render: (_, record) => (
         <Space size="middle">
           <Button type="link" onClick={() => handleEdit(record)}>
-            <Link to={'/admin/category/edit'}>Edit</Link>
+            <Link to={`/admin/category/${record.id}/edit`}>Edit</Link>
           </Button>
-          <Popconfirm title="Sure to delete?" onConfirm={() => handleDelete(record.key)}>
+          <Popconfirm title="Sure to delete?" onConfirm={() => handleDelete(record.id)}>
             <Button type="link" danger>
               Delete
             </Button>
@@ -213,7 +220,17 @@ const Index = () => {
     },
   ];
 
-  return <Table columns={columns} dataSource={data} />;
+  return (
+    <Table
+      columns={columns}
+      dataSource={data}
+      pagination={{
+        ...pagination,
+        disabled: loading,
+      }}
+      onChange={handleTableChange}
+    />
+  );
 };
 
 export default Index;

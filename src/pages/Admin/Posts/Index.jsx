@@ -3,7 +3,7 @@ import { SearchOutlined } from '@ant-design/icons';
 import { Button, Input, Space, Table, Popconfirm } from 'antd';
 import Highlighter from 'react-highlight-words';
 import { Link } from 'react-router-dom';
-import { actSavePostInfo, fetchAll } from '../../../store/postSlice';
+import { actSavePostInfo, fetchAdminPaging, fetchAll, fetchPaging } from '../../../store/postSlice';
 import { useDispatch, useSelector } from 'react-redux';
 import { fetchTags } from '../../../store/categorySlice';
 
@@ -38,16 +38,28 @@ const Index = () => {
   const [searchText, setSearchText] = useState('');
   const [searchedColumn, setSearchedColumn] = useState('');
   const [data, setData] = useState([]);
+  const [pagination, setPagination] = useState({
+    current: 1,
+    pageSize: 3,
+    total: 0,
+  });
+  const [loading, setLoading] = useState(false);
   const searchInput = useRef(null);
   const dispatch = useDispatch();
-  const postList = useSelector((state) => state.POST.allPosts);
+  const postList = useSelector((state) => state.POST.postPaging.list);
   const categories = useSelector((state) => state.CATEGORY.list);
   const tags = useSelector((state) => state.CATEGORY.tags);
 
   console.log('posts', postList);
 
   useEffect(() => {
-    dispatch(fetchAll());
+    dispatch(fetchAdminPaging({ page: pagination.current, per_page: pagination.pageSize })).then((res) => {
+      setPagination({ ...pagination, total: res.payload?.total });
+      setLoading(false);
+    });
+  }, [pagination.current]);
+
+  useEffect(() => {
     dispatch(fetchTags());
   }, [dispatch]);
 
@@ -55,7 +67,7 @@ const Index = () => {
     if (postList && postList.length > 0) {
       setData(postList.map(mappingpostList));
     }
-  }, [postList]);
+  }, [postList, categories, tags]);
 
   function mappingpostList(item) {
     return {
@@ -63,6 +75,7 @@ const Index = () => {
       title: item.title,
       author: item.authorData.nickname,
       content: item.content,
+      slug: item.slug,
       categories: categories
         .filter((category) => item.categoryIds.includes(category.id)) // Filter categories to only include matching category IDs
         .map((category) => category.name) // Return the names of the categories
@@ -72,19 +85,36 @@ const Index = () => {
           .filter((tag) => item.tagsIds.includes(tag.id)) // Filter categories to only include matching tag IDs
           .map((tag) => tag.name) // Return the names of the categories
           .join(', ') || '___',
+      status: item.status || 'draft',
     };
   }
 
   const handleSearch = (selectedKeys, confirm, dataIndex) => {
     confirm();
     setSearchText(selectedKeys[0]);
-    setSearchedColumn(dataIndex);
+    // setSearchedColumn(dataIndex);
+    dispatch(
+      fetchAdminPaging({
+        page: 1, // Reset to the first page on a new search
+        per_page: pagination.pageSize, // Keep the current page size
+        search: selectedKeys[0], // Use the entered search text
+      })
+    ).then((res) => {
+      // Update the pagination's total count if necessary
+      setPagination({ ...pagination, current: 1, total: res.payload?.total });
+      setLoading(false);
+    });
   };
 
   const handleReset = (clearFilters) => {
     clearFilters();
     setSearchText('');
   };
+
+  function handleTableChange(newPagination) {
+    setLoading(!loading);
+    setPagination({ ...pagination, current: newPagination.current });
+  }
 
   const getColumnSearchProps = (dataIndex) => ({
     filterDropdown: ({ setSelectedKeys, selectedKeys, confirm, clearFilters, close }) => (
@@ -203,23 +233,25 @@ const Index = () => {
       dataIndex: 'author',
       key: 'author',
       width: '15%',
-      ...getColumnSearchProps('author'),
     },
     {
       title: 'Categories',
       dataIndex: 'categories',
       key: 'categories',
       width: '25%',
-      ...getColumnSearchProps('categories'),
-      sorter: (a, b) => a.categories.length - b.categories.length,
-      sortDirections: ['descend', 'ascend'],
     },
     {
       title: 'Tags',
       dataIndex: 'tags',
       key: 'tags',
       width: '25%',
-      ...getColumnSearchProps('tags'),
+    },
+    {
+      title: 'Status', // New column for status
+      dataIndex: 'status',
+      key: 'status',
+      width: '15%',
+      render: (text) => <span>{text}</span>, // You can render the status as text or customize it
     },
     {
       title: 'Action',
@@ -227,7 +259,7 @@ const Index = () => {
       render: (_, record) => (
         <Space size="middle">
           <Button type="link" onClick={() => handleEdit(record)}>
-            <Link to={'/admin/posts/edit'}>Edit</Link>
+            <Link to={`/admin/posts/${record.id}/edit`}>Edit</Link>
           </Button>
           <Popconfirm title="Sure to delete?" onConfirm={() => handleDelete(record)}>
             <Button type="link" danger>
@@ -239,7 +271,17 @@ const Index = () => {
     },
   ];
 
-  return <Table columns={columns} dataSource={data} />;
+  return (
+    <Table
+      columns={columns}
+      dataSource={data}
+      pagination={{
+        ...pagination,
+        disabled: loading,
+      }}
+      onChange={handleTableChange}
+    />
+  );
 };
 
 export default Index;

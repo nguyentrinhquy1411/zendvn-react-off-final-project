@@ -4,6 +4,8 @@ import categoryReducer from './categorySlice';
 import commentReducer from './commentSlice';
 import menuReducer from './menuSlice';
 import postReducer from './postSlice';
+import userReducer from './usersSlice';
+import tagsReducer from './TagsSlice';
 
 const rootReducer = {
   POST: postReducer,
@@ -11,6 +13,8 @@ const rootReducer = {
   MENU: menuReducer,
   AUTH: authReducer,
   COMMENT: commentReducer,
+  USERS: userReducer,
+  TAGS: tagsReducer,
 };
 
 const store = configureStore({

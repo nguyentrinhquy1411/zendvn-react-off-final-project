@@ -1,8 +1,15 @@
 import API from './api';
 
 const categoryService = {
-  getAll() {
-    return API.call().get('wp/v2/categories?per_page=100&page=1&lang=vi');
+  getAll(inputParams = {}) {
+    return API.call().get('wp/v2/categories', {
+      params: {
+        per_page: 100,
+        page: 1,
+        lang: 'vi',
+        ...inputParams,
+      },
+    });
   },
   getCategoryIdBySlug(params = {}) {
     return API.call().get(`wp/v2/categories?slug=${params.slug}&lang=vi`);
@@ -21,7 +28,12 @@ const categoryService = {
     });
   },
   getTags(param = {}) {
-    return API.callWithToken().get('wp/v2/tags');
+    return API.callWithToken().get('wp/v2/tags', {
+      params: {
+        per_page: 1000,
+        // lang: 'vi',
+      },
+    });
   },
 };
 

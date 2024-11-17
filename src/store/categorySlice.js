@@ -7,12 +7,28 @@ const initialState = {
   list: [],
   selectedCategory: {},
   tags: [],
+  adminList: {
+    list: [],
+    total: 0,
+  },
 };
 
-export const fetchCategories = createAsyncThunk('category/fetchCategories', async (params, thunkAPI) => {
+export const fetchAdminCategories = createAsyncThunk('category/fetchAdminCategories', async (params = {}, thunkAPI) => {
   try {
-    const res = await categoryService.getAll();
-    console.log('category', res);
+    const res = await categoryService.getAll(params);
+    const list = res.data.map(mappingCategoryData);
+    const total = parseInt(res.headers['x-wp-total']);
+
+    return { list, total };
+  } catch (err) {
+    console.log(err);
+  }
+});
+
+export const fetchCategories = createAsyncThunk('category/fetchCategories', async (params = {}, thunkAPI) => {
+  try {
+    const res = await categoryService.getAll(params);
+    // console.log('category', res);
     const data = res.data.map(mappingCategoryData);
 
     return data;
@@ -20,6 +36,7 @@ export const fetchCategories = createAsyncThunk('category/fetchCategories', asyn
     console.log(err);
   }
 });
+
 export const fetchTags = createAsyncThunk('category/fetchTags', async (params, thunkAPI) => {
   try {
     const res = await categoryService.getTags();
@@ -77,6 +94,9 @@ const slice = createSlice({
     });
     builder.addCase(fetchTags.fulfilled, (state, action) => {
       state.tags = action.payload;
+    });
+    builder.addCase(fetchAdminCategories.fulfilled, (state, action) => {
+      state.adminList = action.payload;
     });
   },
 });

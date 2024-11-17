@@ -1,9 +1,8 @@
 import { createAsyncThunk, createSlice } from '@reduxjs/toolkit';
-import { mappingCommentData, mappingPostData } from '../helpers/index.js';
+import { mappingPostData } from '../helpers/index.js';
 import categoryService from '../services/categoryService.js';
 import detailService from '../services/detailService.js';
 import postService from '../services/postService.js';
-import commentService from '../services/commentService.js';
 
 const initialState = {
   postLatest: [],
@@ -95,17 +94,41 @@ export const fetchSearch = createAsyncThunk('post/fetchSearch', async (params, t
 export const fetchPaging = createAsyncThunk('post/fetchPaging', async (params = {}, thunkAPI) => {
   try {
     const { page } = params;
+    console.log('page', page);
 
     const res = await postService.getAll(params);
-    const totalpages = parseInt(res.headers['x-wp-totalpages']);
+    console.log(res);
+
+    const total = parseInt(res.headers['x-wp-total']);
+    const totalPages = parseInt(res.headers['x-wp-totalpages']);
+
+    console.log('totalPages', totalPages);
+
+    const data = res.data.map(mappingPostData);
+
+    return {
+      totalpages: totalPages,
+      list: data,
+      total,
+      currentPage: page,
+    };
+  } catch (err) {
+    console.log(err);
+  }
+});
+export const fetchAdminPaging = createAsyncThunk('post/fetchAdminPaging', async (params = {}, thunkAPI) => {
+  try {
+    const { page } = params;
+
+    const res = await postService.getAll(params);
+    console.log(res);
+
     const total = parseInt(res.headers['x-wp-total']);
 
     const data = res.data.map(mappingPostData);
 
     return {
       list: data,
-      totalpages,
-      currentPage: page,
       total,
     };
   } catch (err) {
@@ -270,6 +293,9 @@ const slice = createSlice({
           ...payload,
           list: currentPage === 1 ? list : [...state.postPaging.list, ...list],
         };
+      })
+      .addCase(fetchAdminPaging.fulfilled, (state, action) => {
+        state.postPaging = action.payload;
       })
       .addCase(fetchAuthorRelated.fulfilled, (state, action) => {
         state.postRelated = action.payload;

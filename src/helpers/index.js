@@ -16,11 +16,13 @@ export function mappingPostData(item) {
     categoryIds: item.categories,
     tagsIds: item.tags,
     content: item.content.rendered,
+    status: item.status,
   };
 }
 
 export function mappingCategoryData(item) {
   return {
+    key: item.id,
     id: item.id,
     slug: item.slug,
     name: item.name,
@@ -68,5 +70,14 @@ export function mappingTagsData(item) {
   return {
     id: item.id,
     name: item.name,
+  };
+}
+
+export function mappingUsersData(item) {
+  return {
+    id: item.id,
+    nickname: item.nickname,
+    email: item.email,
+    username: item.user_name,
   };
 }

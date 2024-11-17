@@ -78,7 +78,7 @@ export const fetchCurrentUser = createAsyncThunk('auth/fetchCurrentUser', async 
   const { rejectWithValue } = thunkAPI;
   try {
     const res = await authService.getInfo(token);
-    console.log(res);
+    // console.log(res);
 
     const data = mappingProfileData(res.data);
     return { data, status: true };
@@ -111,7 +111,7 @@ const slice = createSlice({
         localStorage.setItem('ACCESS_TOKEN', token);
       })
       .addCase(fetchCurrentUser.fulfilled, (state, action) => {
-        console.log(action.payload);
+        // console.log(action.payload);
         state.currentUser = action.payload.data;
       })
       .addCase(fetchUpdateCurrentUser.fulfilled, (state, action) => {

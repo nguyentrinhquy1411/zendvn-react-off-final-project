@@ -1,10 +1,11 @@
-import React, { useEffect, useRef, useState } from 'react';
 import { SearchOutlined } from '@ant-design/icons';
-import { Button, Input, Space, Table, Popconfirm } from 'antd';
+import { Button, Input, Popconfirm, Space, Table } from 'antd';
+import React, { useEffect, useRef, useState } from 'react';
 import Highlighter from 'react-highlight-words';
-import { Link } from 'react-router-dom';
 import { useDispatch, useSelector } from 'react-redux';
-import { actSaveCategoryInfo, fetchCategories, fetchDeleteCategory } from '../../../store/categorySlice';
+import { Link } from 'react-router-dom';
+import { actSaveCategoryInfo, fetchDeleteCategory } from '../../../store/categorySlice';
+import { fetchUsers } from '../../../store/usersSlice';
 
 const dataSource = [
   {
@@ -38,30 +39,43 @@ const Index = () => {
   const [searchedColumn, setSearchedColumn] = useState('');
   const searchInput = useRef(null);
   const dispatch = useDispatch();
-  const categoryList = useSelector((state) => state.CATEGORY.list);
+  const usersList = useSelector((state) => state.USERS.usersPaging.list);
   const [data, setData] = useState([]);
+  const [loading, setLoading] = useState(false);
+  const [pagination, setPagination] = useState({
+    current: 1,
+    pageSize: 3,
+    total: 0,
+  });
 
   useEffect(() => {
-    dispatch(fetchCategories());
-  }, [dispatch]);
+    dispatch(fetchUsers({ page: pagination.current, per_page: pagination.pageSize })).then((res) => {
+      setPagination({ ...pagination, total: res.payload?.total });
+      setLoading(false);
+    });
+  }, [pagination.current]);
 
   useEffect(() => {
-    if (categoryList && categoryList.length > 0) {
-      setData(categoryList.map(mappingCategoryList));
+    if (usersList && usersList.length > 0) {
+      setData(usersList);
     }
-  }, [categoryList]);
-
-  function mappingCategoryList(item) {
-    return {
-      ...item,
-      key: item.id,
-    };
-  }
+  }, [usersList]);
 
   const handleSearch = (selectedKeys, confirm, dataIndex) => {
     confirm();
     setSearchText(selectedKeys[0]);
-    setSearchedColumn(dataIndex);
+    // setSearchedColumn(dataIndex);
+    dispatch(
+      fetchUsers({
+        page: 1, // Reset to the first page on a new search
+        per_page: pagination.pageSize, // Keep the current page size
+        search: selectedKeys[0], // Use the entered search text
+      })
+    ).then((res) => {
+      // Update the pagination's total count if necessary
+      setPagination({ ...pagination, current: 1, total: res.payload?.total });
+      setLoading(false);
+    });
   };
 
   const handleReset = (clearFilters) => {
@@ -175,6 +189,13 @@ const Index = () => {
     }
   };
 
+  function handleTableChange(newPagination) {
+    console.log('hello');
+
+    setLoading(!loading);
+    setPagination({ ...pagination, current: newPagination.current });
+  }
+
   const handleEdit = (key) => {
     console.log('Edit record:', key);
     dispatch(actSaveCategoryInfo(key));
@@ -182,18 +203,23 @@ const Index = () => {
 
   const columns = [
     {
-      title: 'Name',
-      dataIndex: 'name',
-      key: 'name',
-      width: '30%',
-      ...getColumnSearchProps('name'),
+      title: 'Username',
+      dataIndex: 'username',
+      key: 'username',
+      width: '25%%',
+      ...getColumnSearchProps('username'),
     },
     {
-      title: 'Slug',
-      dataIndex: 'slug',
-      key: 'slug',
-      width: '40%',
-      ...getColumnSearchProps('slug'),
+      title: 'Nickname',
+      dataIndex: 'nickname',
+      key: 'nickname',
+      width: '25%',
+    },
+    {
+      title: 'Email',
+      dataIndex: 'email',
+      key: 'email',
+      width: '25%',
     },
     {
       title: 'Action',
@@ -201,7 +227,7 @@ const Index = () => {
       render: (_, record) => (
         <Space size="middle">
           <Button type="link" onClick={() => handleEdit(record)}>
-            <Link to={'/admin/category/edit'}>Edit</Link>
+            <Link to={'/admin/users/:id/edit'}>Edit</Link>
           </Button>
           <Popconfirm title="Sure to delete?" onConfirm={() => handleDelete(record.key)}>
             <Button type="link" danger>
@@ -213,7 +239,17 @@ const Index = () => {
     },
   ];
 
-  return <Table columns={columns} dataSource={data} />;
+  return (
+    <Table
+      columns={columns}
+      dataSource={data}
+      onChange={handleTableChange}
+      pagination={{
+        ...pagination,
+        disabled: loading,
+      }}
+    />
+  );
 };
 
 export default Index;
