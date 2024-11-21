@@ -1,11 +1,13 @@
-import React, { useEffect, useRef, useState } from 'react';
 import { SearchOutlined } from '@ant-design/icons';
-import { Button, Input, Space, Table, Popconfirm } from 'antd';
+import { Button, Input, Popconfirm, Space, Table } from 'antd';
+import qs from 'query-string';
+import React, { useEffect, useRef, useState } from 'react';
 import Highlighter from 'react-highlight-words';
-import { Link } from 'react-router-dom';
-import { actSavePostInfo, fetchAdminPaging, fetchAll, fetchPaging } from '../../../store/postSlice';
 import { useDispatch, useSelector } from 'react-redux';
-import { fetchTags } from '../../../store/categorySlice';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
+import { actSavePostInfo, deletetPost, fetchAdminPaging } from '../../../store/postSlice';
+import { fetchTags } from '../../../store/TagsSlice';
+import { successNotification } from '../../../helpers/notificantion';
 
 const dataSource = [
   {
@@ -38,26 +40,32 @@ const Index = () => {
   const [searchText, setSearchText] = useState('');
   const [searchedColumn, setSearchedColumn] = useState('');
   const [data, setData] = useState([]);
-  const [pagination, setPagination] = useState({
-    current: 1,
-    pageSize: 3,
-    total: 0,
-  });
   const [loading, setLoading] = useState(false);
   const searchInput = useRef(null);
   const dispatch = useDispatch();
+  const navigate = useNavigate();
+  const location = useLocation();
   const postList = useSelector((state) => state.POST.postPaging.list);
   const categories = useSelector((state) => state.CATEGORY.list);
-  const tags = useSelector((state) => state.CATEGORY.tags);
+  const tags = useSelector((state) => state.TAGS.tags);
+  const { page = 1, per_page = 3, search = '' } = qs.parse(location.search);
+  const [pagination, setPagination] = useState({
+    current: Number(page),
+    pageSize: Number(per_page),
+    total: 0,
+  });
 
   console.log('posts', postList);
 
   useEffect(() => {
-    dispatch(fetchAdminPaging({ page: pagination.current, per_page: pagination.pageSize })).then((res) => {
+    setLoading(true);
+    dispatch(
+      fetchAdminPaging({ page: pagination.current, per_page: pagination.pageSize, search: searchText || search })
+    ).then((res) => {
       setPagination({ ...pagination, total: res.payload?.total });
       setLoading(false);
     });
-  }, [pagination.current]);
+  }, [pagination.current, pagination.pageSize, searchText, search]);
 
   useEffect(() => {
     dispatch(fetchTags());
@@ -68,6 +76,11 @@ const Index = () => {
       setData(postList.map(mappingpostList));
     }
   }, [postList, categories, tags]);
+
+  const updateURL = (params) => {
+    const updatedQuery = qs.stringify({ ...qs.parse(location.search), ...params });
+    navigate(`?${updatedQuery}`, { replace: true });
+  };
 
   function mappingpostList(item) {
     return {
@@ -93,27 +106,19 @@ const Index = () => {
     confirm();
     setSearchText(selectedKeys[0]);
     // setSearchedColumn(dataIndex);
-    dispatch(
-      fetchAdminPaging({
-        page: 1, // Reset to the first page on a new search
-        per_page: pagination.pageSize, // Keep the current page size
-        search: selectedKeys[0], // Use the entered search text
-      })
-    ).then((res) => {
-      // Update the pagination's total count if necessary
-      setPagination({ ...pagination, current: 1, total: res.payload?.total });
-      setLoading(false);
-    });
+    updateURL({ search: selectedKeys[0], page: 1 });
   };
 
   const handleReset = (clearFilters) => {
     clearFilters();
     setSearchText('');
+    updateURL({ search: '', page: 1 });
   };
 
   function handleTableChange(newPagination) {
-    setLoading(!loading);
-    setPagination({ ...pagination, current: newPagination.current });
+    setLoading(true);
+    setPagination({ ...pagination, current: newPagination.current, pageSize: newPagination.pageSize });
+    updateURL({ page: newPagination.current, per_page: newPagination.pageSize });
   }
 
   const getColumnSearchProps = (dataIndex) => ({
@@ -210,8 +215,27 @@ const Index = () => {
       ),
   });
 
-  const handleDelete = (key) => {
+  const handleDelete = async (key) => {
+    setLoading(true); // Show loading while deleting
     console.log(key);
+
+    try {
+      // Dispatch the delete action and wait for it to finish
+      await dispatch(deletetPost(key));
+      dispatch(
+        fetchAdminPaging({
+          page: pagination.current,
+          per_page: pagination.pageSize,
+          search: searchText || search,
+        })
+      ).then((res) => {
+        setPagination({ ...pagination, total: res.payload?.total - 1 });
+        setLoading(false); // Stop loading after fetching updated data
+        successNotification('Xóa thành công!!');
+      });
+    } catch (error) {
+      console.error('Failed to delete post:', error);
+    }
   };
 
   const handleEdit = (key) => {
@@ -261,7 +285,7 @@ const Index = () => {
           <Button type="link" onClick={() => handleEdit(record)}>
             <Link to={`/admin/posts/${record.id}/edit`}>Edit</Link>
           </Button>
-          <Popconfirm title="Sure to delete?" onConfirm={() => handleDelete(record)}>
+          <Popconfirm title="Sure to delete?" onConfirm={() => handleDelete(record.id)}>
             <Button type="link" danger>
               Delete
             </Button>
@@ -280,6 +304,7 @@ const Index = () => {
         disabled: loading,
       }}
       onChange={handleTableChange}
+      loading={loading}
     />
   );
 };

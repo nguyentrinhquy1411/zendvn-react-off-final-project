@@ -3,37 +3,10 @@ import { Button, Input, Popconfirm, Space, Table } from 'antd';
 import React, { useEffect, useRef, useState } from 'react';
 import Highlighter from 'react-highlight-words';
 import { useDispatch, useSelector } from 'react-redux';
-import { Link } from 'react-router-dom';
-import { actSaveCategoryInfo, fetchAdminCategories, fetchDeleteCategory } from '../../../store/categorySlice';
-
-/*
-const dataSource = [
-  {
-    key: '1',
-    name: 'John Brown',
-    age: 32,
-    address: 'New York No. 1 Lake Park',
-  },
-  {
-    key: '2',
-    name: 'Joe Black',
-    age: 42,
-    address: 'London No. 1 Lake Park',
-  },
-  {
-    key: '3',
-    name: 'Jim Green',
-    age: 32,
-    address: 'Sydney No. 1 Lake Park',
-  },
-  {
-    key: '4',
-    name: 'Jim Red',
-    age: 32,
-    address: 'London No. 2 Lake Park',
-  },
-];
-*/
+import { Link, useLocation, useNavigate } from 'react-router-dom';
+import { fetchAdminCategories, fetchDeleteCategory } from '../../../store/categorySlice';
+import qs from 'query-string';
+import { successNotification } from '../../../helpers/notificantion';
 
 const Index = () => {
   const [searchText, setSearchText] = useState('');
@@ -41,62 +14,65 @@ const Index = () => {
   const [loading, setLoading] = useState(false);
   const searchInput = useRef(null);
   const dispatch = useDispatch();
+  const navigate = useNavigate();
+  const location = useLocation();
+
   const data = useSelector((state) => state.CATEGORY.adminList.list);
+
+  // Parse query parameters from URL
+  const { page = 1, per_page = 3, search = '' } = qs.parse(location.search);
+
   const [pagination, setPagination] = useState({
-    current: 1,
-    pageSize: 3,
+    current: Number(page),
+    pageSize: Number(per_page),
     total: 0,
   });
 
-  console.log('data', data);
-
   useEffect(() => {
-    dispatch(fetchAdminCategories({ page: pagination.current, per_page: pagination.pageSize })).then((res) => {
+    setLoading(true);
+    dispatch(
+      fetchAdminCategories({
+        page: pagination.current,
+        per_page: pagination.pageSize,
+        search: searchText || search,
+      })
+    ).then((res) => {
       setPagination({ ...pagination, total: res.payload?.total });
       setLoading(false);
     });
-  }, [pagination.current]);
+  }, [pagination.current, pagination.pageSize, searchText, search]);
+
+  const updateURL = (params) => {
+    const updatedQuery = qs.stringify({ ...qs.parse(location.search), ...params });
+    navigate(`?${updatedQuery}`, { replace: true });
+  };
 
   const handleSearch = (selectedKeys, confirm, dataIndex) => {
     confirm();
     setSearchText(selectedKeys[0]);
-    // setSearchedColumn(dataIndex);
-    dispatch(
-      fetchAdminCategories({
-        page: 1, // Reset to the first page on a new search
-        per_page: pagination.pageSize, // Keep the current page size
-        search: selectedKeys[0], // Use the entered search text
-      })
-    ).then((res) => {
-      // Update the pagination's total count if necessary
-      setPagination({ ...pagination, current: 1, total: res.payload?.total });
-      setLoading(false);
-    });
+
+    // Update URL and reset to the first page
+    updateURL({ search: selectedKeys[0], page: 1 });
   };
 
   const handleReset = (clearFilters) => {
     clearFilters();
     setSearchText('');
+
+    // Clear search query in the URL
+    updateURL({ search: '', page: 1 });
   };
 
   const getColumnSearchProps = (dataIndex) => ({
     filterDropdown: ({ setSelectedKeys, selectedKeys, confirm, clearFilters, close }) => (
-      <div
-        style={{
-          padding: 8,
-        }}
-        onKeyDown={(e) => e.stopPropagation()}
-      >
+      <div style={{ padding: 8 }} onKeyDown={(e) => e.stopPropagation()}>
         <Input
           ref={searchInput}
           placeholder={`Search ${dataIndex}`}
           value={selectedKeys[0]}
           onChange={(e) => setSelectedKeys(e.target.value ? [e.target.value] : [])}
           onPressEnter={() => handleSearch(selectedKeys, confirm, dataIndex)}
-          style={{
-            marginBottom: 8,
-            display: 'block',
-          }}
+          style={{ marginBottom: 8, display: 'block' }}
         />
         <Space>
           <Button
@@ -104,33 +80,12 @@ const Index = () => {
             onClick={() => handleSearch(selectedKeys, confirm, dataIndex)}
             icon={<SearchOutlined />}
             size="small"
-            style={{
-              width: 90,
-            }}
+            style={{ width: 90 }}
           >
             Search
           </Button>
-          <Button
-            onClick={() => clearFilters && handleReset(clearFilters)}
-            size="small"
-            style={{
-              width: 90,
-            }}
-          >
+          <Button onClick={() => clearFilters && handleReset(clearFilters)} size="small" style={{ width: 90 }}>
             Reset
-          </Button>
-          <Button
-            type="link"
-            size="small"
-            onClick={() => {
-              confirm({
-                closeDropdown: false,
-              });
-              setSearchText(selectedKeys[0]);
-              setSearchedColumn(dataIndex);
-            }}
-          >
-            Filter
           </Button>
           <Button
             type="link"
@@ -139,19 +94,13 @@ const Index = () => {
               close();
             }}
           >
-            close
+            Close
           </Button>
         </Space>
       </div>
     ),
-    filterIcon: (filtered) => (
-      <SearchOutlined
-        style={{
-          color: filtered ? '#1677ff' : undefined,
-        }}
-      />
-    ),
-    onFilter: (value, record) => record[dataIndex].toString().toLowerCase().includes(value.toLowerCase()),
+    filterIcon: (filtered) => <SearchOutlined style={{ color: filtered ? '#1677ff' : undefined }} />,
+    onFilter: (value, record) => record[dataIndex]?.toString().toLowerCase().includes(value.toLowerCase()),
     onFilterDropdownOpenChange: (visible) => {
       if (visible) {
         setTimeout(() => searchInput.current?.select(), 100);
@@ -160,10 +109,7 @@ const Index = () => {
     render: (text) =>
       searchedColumn === dataIndex ? (
         <Highlighter
-          highlightStyle={{
-            backgroundColor: '#ffc069',
-            padding: 0,
-          }}
+          highlightStyle={{ backgroundColor: '#ffc069', padding: 0 }}
           searchWords={[searchText]}
           autoEscape
           textToHighlight={text ? text.toString() : ''}
@@ -174,18 +120,32 @@ const Index = () => {
   });
 
   const handleDelete = async (id) => {
-    dispatch(fetchDeleteCategory(id));
+    setLoading(true); // Show loading while deleting
+    await dispatch(fetchDeleteCategory(id)).unwrap(); // Ensure action completes
+    // Fetch updated data to refresh the table
+    dispatch(
+      fetchAdminCategories({
+        page: pagination.current,
+        per_page: pagination.pageSize,
+        search: searchText || search,
+      })
+    ).then((res) => {
+      setPagination({ ...pagination, total: res.payload?.total - 1 });
+      setLoading(false); // Stop loading after fetching updated data
+      successNotification('Xóa thành công!!');
+    });
   };
 
-  function handleTableChange(newPagination) {
-    setLoading(!loading);
-    setPagination({ ...pagination, current: newPagination.current });
-  }
+  const handleTableChange = (newPagination) => {
+    setLoading(true);
+    setPagination({
+      ...pagination,
+      current: newPagination.current,
+      pageSize: newPagination.pageSize,
+    });
 
-  const handleEdit = (key) => {
-    console.log('Edit record:', key);
-    dispatch(actSaveCategoryInfo(key));
-    // You can implement a modal or form to edit the record here
+    // Update URL with new pagination
+    updateURL({ page: newPagination.current, per_page: newPagination.pageSize });
   };
 
   const columns = [
@@ -207,9 +167,9 @@ const Index = () => {
       key: 'action',
       render: (_, record) => (
         <Space size="middle">
-          <Button type="link" onClick={() => handleEdit(record)}>
-            <Link to={`/admin/category/${record.id}/edit`}>Edit</Link>
-          </Button>
+          <Link to={`/admin/category/${record.id}/edit`}>
+            <Button type="link">Edit</Button>
+          </Link>
           <Popconfirm title="Sure to delete?" onConfirm={() => handleDelete(record.id)}>
             <Button type="link" danger>
               Delete
@@ -229,6 +189,7 @@ const Index = () => {
         disabled: loading,
       }}
       onChange={handleTableChange}
+      loading={loading}
     />
   );
 };

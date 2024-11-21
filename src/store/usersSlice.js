@@ -2,6 +2,7 @@
 import { createAsyncThunk, createSlice } from '@reduxjs/toolkit';
 import usersService from '../services/usersService';
 import { mappingUsersData } from '../helpers';
+import authService from '../services/authService';
 
 const initialState = {
   token: localStorage.getItem('ACCESS_TOKEN'),
@@ -21,6 +22,36 @@ export const fetchUsers = createAsyncThunk('users/fetchUsers', async (params, th
     return data;
   } catch (err) {
     console.log(err);
+  }
+});
+
+export const deletetUser = createAsyncThunk('users/deletetUser', async (id, thunkAPI) => {
+  try {
+    await usersService.deleteUser(id);
+
+    return { status: true };
+  } catch (err) {
+    console.log(err);
+  }
+});
+
+export const addUser = createAsyncThunk('profile/addUser', async (data, thunkAPI) => {
+  const { rejectWithValue, dispatch } = thunkAPI;
+
+  try {
+    console.log(data);
+
+    if (data.dataFile) {
+      const resMedia = await authService.uploadMeida(data.dataFile);
+      data.simple_local_avatar = { media_id: resMedia.data.id };
+    }
+
+    await usersService.addUser(data);
+
+    return { status: true };
+  } catch (err) {
+    console.log(err);
+    return rejectWithValue({ status: false });
   }
 });
 

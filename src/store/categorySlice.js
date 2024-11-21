@@ -6,7 +6,6 @@ import categoryService from '../services/categoryService';
 const initialState = {
   list: [],
   selectedCategory: {},
-  tags: [],
   adminList: {
     list: [],
     total: 0,
@@ -25,24 +24,23 @@ export const fetchAdminCategories = createAsyncThunk('category/fetchAdminCategor
   }
 });
 
-export const fetchCategories = createAsyncThunk('category/fetchCategories', async (params = {}, thunkAPI) => {
+export const fetchCategoryById = createAsyncThunk('category/fetchCategoryById', async (params = {}, thunkAPI) => {
   try {
-    const res = await categoryService.getAll(params);
-    // console.log('category', res);
-    const data = res.data.map(mappingCategoryData);
-
-    return data;
+    const res = await categoryService.getById(params);
+    // const list = res.data.map(mappingCategoryData);
+    // const total = parseInt(res.headers['x-wp-total']);
+    console.log('category selected data: ', res);
+    return res.data;
   } catch (err) {
     console.log(err);
   }
 });
 
-export const fetchTags = createAsyncThunk('category/fetchTags', async (params, thunkAPI) => {
+export const fetchCategories = createAsyncThunk('category/fetchCategories', async (params = {}, thunkAPI) => {
   try {
-    const res = await categoryService.getTags();
-    console.log('tags', res);
-
-    const data = res.data.map(mappingTagsData);
+    const res = await categoryService.getAll(params);
+    // console.log('category', res);
+    const data = res.data.map(mappingCategoryData);
 
     return data;
   } catch (err) {
@@ -84,19 +82,17 @@ const slice = createSlice({
   name: 'category',
   initialState: initialState,
   reducers: {
-    actSaveCategoryInfo(state, action) {
-      state.selectedCategory = action.payload;
-    },
+    actSaveCategoryInfo(state, action) {},
   },
   extraReducers: (builder) => {
     builder.addCase(fetchCategories.fulfilled, (state, action) => {
       state.list = action.payload;
     });
-    builder.addCase(fetchTags.fulfilled, (state, action) => {
-      state.tags = action.payload;
-    });
     builder.addCase(fetchAdminCategories.fulfilled, (state, action) => {
       state.adminList = action.payload;
+    });
+    builder.addCase(fetchCategoryById.fulfilled, (state, action) => {
+      state.selectedCategory = action.payload;
     });
   },
 });

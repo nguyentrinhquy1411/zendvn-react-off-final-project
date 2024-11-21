@@ -33,10 +33,18 @@ const postService = {
     return API.call().get('wp/v2/posts?lang=vi');
   },
   postPosts(data) {
-    return API.callWithToken().post('wp/v2/posts', data);
+    return API.callWithToken().post('wp/v2/posts', { ...data, lang: 'vi' });
   },
   updatePost(data) {
     return API.callWithToken().put(`wp/v2/posts/${data.id}`, data);
+  },
+  getById(params = {}) {
+    return API.call().get(`/wp/v2/posts/${params.id}`);
+  },
+  deletePost(id) {
+    return API.callWithToken().delete(`wp/v2/posts/${id}`, {
+      params: { force: true },
+    });
   },
 };
 

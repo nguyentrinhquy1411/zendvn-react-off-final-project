@@ -3,16 +3,18 @@ import { Button, Card, Checkbox, Collapse, Form, Input, Radio, Select, Space, me
 import React, { useEffect, useState } from 'react';
 import { Controller, useForm } from 'react-hook-form';
 import { useDispatch, useSelector } from 'react-redux';
+import { useNavigate } from 'react-router-dom';
 import * as yup from 'yup';
-import { fetchCategories, fetchTags } from '../../../store/categorySlice';
+import { successNotification } from '../../../helpers/notificantion';
+import { fetchCategories } from '../../../store/categorySlice';
 import { fetchAddPost } from '../../../store/postSlice';
-import { addNewTag } from '../../../store/TagsSlice';
+import { addNewTag, fetchTags } from '../../../store/TagsSlice';
 
 const schema = yup.object({}).required();
 
 const Create = () => {
   const [newTag, setNewTag] = useState('');
-  const [selectedTags, setSelectedTags] = useState([]); // To track selected tags
+  const [selectedTags, setSelectedTags] = useState([]);
 
   const {
     register,
@@ -24,45 +26,49 @@ const Create = () => {
   });
   const dispatch = useDispatch();
   const categories = useSelector((state) => state.CATEGORY.list);
-  const tags = useSelector((state) => state.CATEGORY.tags);
-
-  console.log('tags', tags);
+  const tags = useSelector((state) => state.TAGS.tags);
+  const navigate = useNavigate();
 
   const handleMySubmit = (data) => {
     console.log('data submit', data);
-    dispatch(fetchAddPost(data));
+    dispatch(fetchAddPost(data)).then((res) => {
+      console.log(res.payload.status);
+
+      if (res.payload.status) {
+        navigate('/admin/posts');
+        successNotification('Thêm bài viết thành công!!');
+      }
+    });
   };
 
   const handleTagCreate = async () => {
-    if (newTag.trim()) {
-      // Check if the tag already exists
-      const tagExists = tags.some((tag) => tag.name.toLowerCase() === newTag.trim().toLowerCase());
+    if (!newTag.trim()) {
+      message.warning('Tag name cannot be empty.');
+      return;
+    }
 
-      if (tagExists) {
-        // If tag already exists, show a message and do not create the tag
-        message.warning('This tag already exists.');
-        return;
-      }
+    const tagExists = tags.some((tag) => tag.name.toLowerCase() === newTag.toLowerCase());
 
-      try {
-        const createdTag = await dispatch(addNewTag({ name: newTag.trim() })).unwrap();
-        // Update the selectedTags list after successful creation
-        setSelectedTags((prevTags) => [
-          ...prevTags,
-          createdTag.id, // Add the new tag id to the selectedTags
-        ]);
-        dispatch(fetchTags()); // Optionally refetch the tag list to include the new tag
-        setNewTag(''); // Clear input after successful creation
-      } catch (error) {
-        console.error('Error creating tag:', error);
-      }
+    if (tagExists) {
+      message.warning('This tag already exists.');
+      return;
+    }
+
+    try {
+      const createdTag = await dispatch(addNewTag({ name: newTag })).unwrap(); // Use `unwrap` for correct promise handling
+      setSelectedTags((prevTags) => [...prevTags, createdTag.id]);
+      dispatch(fetchTags()); // Refresh tags list
+      setNewTag('');
+    } catch (error) {
+      console.error('Error creating tag:', error);
+      message.error('Failed to create new tag.');
     }
   };
 
   const handleKeyDown = (event) => {
     if (event.key === 'Enter') {
-      event.preventDefault(); // Prevent form submission on Enter key press
-      handleTagCreate(); // Run the API function when Enter is pressed
+      event.preventDefault();
+      handleTagCreate();
     }
   };
 
@@ -88,73 +94,74 @@ const Create = () => {
           </Form.Item>
 
           <Collapse defaultActiveKey={['1']} style={{ marginBottom: '24px' }}>
-            {/* Categories Panel */}
             <Collapse.Panel header="Blog Categories" key="1">
               <Form.Item label="Categories">
                 <Controller
                   name="categories"
                   render={({ field }) => (
-                    <Space direction="horizontal">
-                      {categories.map((item, idx) => (
-                        <Radio key={idx} value={item.id} {...field}>
+                    <Checkbox.Group {...field}>
+                      {categories.map((item) => (
+                        <Checkbox key={item.id} value={item.id}>
                           {item.name}
-                        </Radio>
+                        </Checkbox>
                       ))}
-                    </Space>
+                    </Checkbox.Group>
                   )}
                   control={control}
-                  defaultValue={[]} // Array of selected categories
+                  defaultValue={[]}
                 />
               </Form.Item>
             </Collapse.Panel>
 
-            {/* Tags Panel */}
             <Collapse.Panel header="Blog Tags" key="2">
               <Form.Item label="Tags">
                 <Controller
                   name="tags"
                   render={({ field }) => (
                     <Select
-                      mode="tags" // Enable typing and adding new tags
-                      allowClear
-                      placeholder="Enter or select tags"
+                      mode="multiple"
+                      placeholder="Select tags"
                       style={{ width: '100%' }}
                       onChange={(value) => {
-                        setSelectedTags(value); // Update selected tags
-                        field.onChange(value); // Sync with react-hook-form
+                        setSelectedTags(value);
+                        field.onChange(value);
                       }}
-                      value={selectedTags} // Bind to selectedTags state
+                      onKeyDown={handleKeyDown}
+                      value={selectedTags}
                       options={tags.map((tag) => ({
                         label: tag.name,
                         value: tag.id,
                       }))}
-                      onKeyDown={handleKeyDown} // Attach keyDown handler
                     />
                   )}
                   control={control}
-                  defaultValue={[]} // Array of selected tags
+                  defaultValue={[]}
                 />
               </Form.Item>
+              <Space>
+                <Input placeholder="Add a new tag" value={newTag} onChange={(e) => setNewTag(e.target.value)} />
+                <Button type="primary" onClick={handleTagCreate}>
+                  Add Tag
+                </Button>
+              </Space>
             </Collapse.Panel>
           </Collapse>
 
-          {/* Status Field */}
-          <Form.Item label="Status" style={{ marginTop: '24px' }}>
+          <Form.Item label="Status">
             <Controller
               name="status"
               render={({ field }) => (
-                <Checkbox.Group {...field}>
-                  <Checkbox value="draft">Draft</Checkbox>
-                  <Checkbox value="public">Public</Checkbox>
-                  <Checkbox value="pending">Pending</Checkbox>
-                </Checkbox.Group>
+                <Radio.Group {...field}>
+                  <Radio value="draft">Draft</Radio>
+                  <Radio value="publish">Publish</Radio>
+                  <Radio value="pending">Pending</Radio>
+                </Radio.Group>
               )}
               control={control}
-              defaultValue={['draft']}
+              defaultValue="draft"
             />
           </Form.Item>
 
-          {/* Submit Button */}
           <Form.Item>
             <Button type="primary" htmlType="submit">
               Add

@@ -58,11 +58,9 @@ function App() {
             <Route path="category/create" element={<AdminCategoryCreate />} />
             <Route path="category/:id/edit" element={<AdminCategoryEdit />} />
             <Route path="profile" element={<UsersList />} />
-            <Route path="profile/all" element={<UsersList />} />
             <Route path="profile/create" element={<AddUser />} />
             <Route path="profile/me" element={<YourProfile />} />
             <Route path="posts/" element={<AdminPostList />} />
-            <Route path="posts/all" element={<AdminPostList />} />
             <Route path="posts/create" element={<AdminCreatePost />} />
             <Route path="posts/:id/edit" element={<AdminEditPost />} />
           </Route>

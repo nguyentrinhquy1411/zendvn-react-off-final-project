@@ -1,11 +1,13 @@
 import { SearchOutlined } from '@ant-design/icons';
 import { Button, Input, Popconfirm, Space, Table } from 'antd';
+import qs from 'query-string';
 import React, { useEffect, useRef, useState } from 'react';
 import Highlighter from 'react-highlight-words';
 import { useDispatch, useSelector } from 'react-redux';
-import { Link } from 'react-router-dom';
-import { actSaveCategoryInfo, fetchDeleteCategory } from '../../../store/categorySlice';
-import { fetchUsers } from '../../../store/usersSlice';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
+import { actSaveCategoryInfo } from '../../../store/categorySlice';
+import { deletetUser, fetchUsers } from '../../../store/usersSlice';
+import { successNotification } from '../../../helpers/notificantion';
 
 const dataSource = [
   {
@@ -39,21 +41,31 @@ const Index = () => {
   const [searchedColumn, setSearchedColumn] = useState('');
   const searchInput = useRef(null);
   const dispatch = useDispatch();
+  const navigate = useNavigate();
+  const location = useLocation();
   const usersList = useSelector((state) => state.USERS.usersPaging.list);
   const [data, setData] = useState([]);
   const [loading, setLoading] = useState(false);
+  const { page = 1, per_page = 3, search = '' } = qs.parse(location.search);
   const [pagination, setPagination] = useState({
-    current: 1,
-    pageSize: 3,
+    current: Number(page),
+    pageSize: Number(per_page),
     total: 0,
   });
 
   useEffect(() => {
-    dispatch(fetchUsers({ page: pagination.current, per_page: pagination.pageSize })).then((res) => {
+    dispatch(
+      fetchUsers({ page: pagination.current, per_page: pagination.pageSize, search: searchText || search })
+    ).then((res) => {
       setPagination({ ...pagination, total: res.payload?.total });
       setLoading(false);
     });
-  }, [pagination.current]);
+  }, [pagination.current, pagination.pageSize, searchText, search]);
+
+  const updateURL = (params) => {
+    const updatedQuery = qs.stringify({ ...qs.parse(location.search), ...params });
+    navigate(`?${updatedQuery}`, { replace: true });
+  };
 
   useEffect(() => {
     if (usersList && usersList.length > 0) {
@@ -65,22 +77,14 @@ const Index = () => {
     confirm();
     setSearchText(selectedKeys[0]);
     // setSearchedColumn(dataIndex);
-    dispatch(
-      fetchUsers({
-        page: 1, // Reset to the first page on a new search
-        per_page: pagination.pageSize, // Keep the current page size
-        search: selectedKeys[0], // Use the entered search text
-      })
-    ).then((res) => {
-      // Update the pagination's total count if necessary
-      setPagination({ ...pagination, current: 1, total: res.payload?.total });
-      setLoading(false);
-    });
+    updateURL({ search: selectedKeys[0], page: 1 });
   };
 
   const handleReset = (clearFilters) => {
     clearFilters();
     setSearchText('');
+
+    updateURL({ search: '', page: 1 });
   };
 
   const getColumnSearchProps = (dataIndex) => ({
@@ -178,22 +182,31 @@ const Index = () => {
   });
 
   const handleDelete = async (key) => {
+    setLoading(true); // Show loading while deleting
+
     try {
       // Dispatch the delete action and wait for it to finish
-      await dispatch(fetchDeleteCategory(key));
-
-      // After successful deletion, filter the deleted item out of `data`
-      setData((prevData) => prevData.filter((item) => item.key !== key));
+      await dispatch(deletetUser(key));
+      dispatch(
+        fetchUsers({
+          page: pagination.current,
+          per_page: pagination.pageSize,
+          search: searchText || search,
+        })
+      ).then((res) => {
+        setPagination({ ...pagination, total: res.payload?.total - 1 });
+        setLoading(false); // Stop loading after fetching updated data
+        successNotification('Xóa thành công!!');
+      });
     } catch (error) {
-      console.error('Failed to delete category:', error);
+      console.error('Failed to delete user:', error);
     }
   };
 
   function handleTableChange(newPagination) {
-    console.log('hello');
-
-    setLoading(!loading);
-    setPagination({ ...pagination, current: newPagination.current });
+    setLoading(true);
+    setPagination({ ...pagination, current: newPagination.current, pageSize: newPagination.pageSize });
+    updateURL({ page: newPagination.current, per_page: newPagination.pageSize });
   }
 
   const handleEdit = (key) => {
@@ -229,7 +242,7 @@ const Index = () => {
           <Button type="link" onClick={() => handleEdit(record)}>
             <Link to={'/admin/users/:id/edit'}>Edit</Link>
           </Button>
-          <Popconfirm title="Sure to delete?" onConfirm={() => handleDelete(record.key)}>
+          <Popconfirm title="Sure to delete?" onConfirm={() => handleDelete(record.id)}>
             <Button type="link" danger>
               Delete
             </Button>
@@ -244,6 +257,7 @@ const Index = () => {
       columns={columns}
       dataSource={data}
       onChange={handleTableChange}
+      loading={loading}
       pagination={{
         ...pagination,
         disabled: loading,

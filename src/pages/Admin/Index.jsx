@@ -17,18 +17,17 @@ function getItem(label, key, icon, children) {
 }
 
 const items = [
-  getItem(<Link to="/admin/dashboard">Dashboard</Link>, '/admin/dashboard'),
-  getItem(<Link to="/admin/category">Category</Link>, '/admin/category', <PushpinOutlined />, [
-    getItem(<Link to="/admin/category/">Categories</Link>, '/admin/category/all'),
+  getItem(<Link>Category</Link>, '/admin/category', <PushpinOutlined />, [
+    getItem(<Link to="/admin/category/">Categories</Link>, '/admin/category/'),
     getItem(<Link to="/admin/category/create">Add new categories</Link>, '/admin/category/create'),
   ]),
-  getItem(<Link to="/admin/profile">Profile</Link>, '/admin/profile', <UserOutlined />, [
-    getItem(<Link to="/admin/profile/all">All users</Link>, '/admin/profile/all'),
+  getItem(<Link>Profile</Link>, '/admin/profile', <UserOutlined />, [
+    getItem(<Link to="/admin/profile/">All users</Link>, '/admin/profile/'),
     getItem(<Link to="/admin/profile/create">Add new user</Link>, '/admin/profile/create'),
     getItem(<Link to="/admin/profile/me">Your profile</Link>, '/admin/profile/me'),
   ]),
-  getItem(<Link to="/admin/posts">Posts</Link>, '/admin/posts', <BookOutlined />, [
-    getItem(<Link to="/admin/posts/all">All posts</Link>, '/admin/posts/all'),
+  getItem(<Link>Posts</Link>, '/admin/posts', <BookOutlined />, [
+    getItem(<Link to="/admin/posts/">All posts</Link>, '/admin/posts/'),
     getItem(<Link to="/admin/posts/create">Add new post</Link>, '/admin/posts/create'),
   ]),
 ];
@@ -44,15 +43,9 @@ const AdminLayout = () => {
   const dropdownItems = (
     <Menu>
       <Menu.Item key="1">
-        <Link to="/admin/profile">Profile</Link>
+        <Link to="/admin/profile/me">Profile</Link>
       </Menu.Item>
-      <Menu.Item key="2">
-        <Link to="/admin/profile/me">Edit Profile</Link>
-      </Menu.Item>
-      <Menu.Item key="3">
-        <Link to="/admin/settings">Settings</Link>
-      </Menu.Item>
-      <Menu.Item key="4" danger>
+      <Menu.Item key="2" danger>
         Logout
       </Menu.Item>
     </Menu>

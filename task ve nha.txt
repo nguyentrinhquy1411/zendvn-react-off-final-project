@@ -49,3 +49,8 @@ PostCreate
 React Hook Form
 
 Category: List, edit, delete, pagination, sort, search
+
+
+chỉnh lại phần tag chưa chạy func
+custom lại phần upload, hoàn thành phần user
+thêm UX cho project

@@ -11,6 +11,15 @@ const usersService = {
       },
     });
   },
+
+  deleteUser(id) {
+    return API.callWithToken().delete(`wp/v2/users/${id}`, {
+      params: { force: true },
+    });
+  },
+  addUser(data) {
+    return API.callWithToken().post('wp/v2/users/', { ...data, lang: 'vi' });
+  },
 };
 
 export default usersService;

@@ -136,6 +136,29 @@ export const fetchAdminPaging = createAsyncThunk('post/fetchAdminPaging', async 
   }
 });
 
+export const fetchPostById = createAsyncThunk('post/fetchPostById', async (params = {}, thunkAPI) => {
+  try {
+    const res = await postService.getById(params);
+    console.log('post data', res);
+
+    const data = mappingPostData(res.data);
+
+    return data;
+  } catch (err) {
+    console.log(err);
+  }
+});
+
+export const deletetPost = createAsyncThunk('users/deletetPost', async (id, thunkAPI) => {
+  try {
+    await postService.deletePost(id);
+
+    return { status: true };
+  } catch (err) {
+    console.log(err);
+  }
+});
+
 export const fetchPopular = createAsyncThunk('post/fetchPopular', async (params, thunkAPI) => {
   try {
     const res = await postService.getPopular();
@@ -243,9 +266,6 @@ const slice = createSlice({
     actResetPostSearch(state, action) {
       state.postSearch.list = [];
     },
-    actSavePostInfo(state, action) {
-      state.postSelected = action.payload;
-    },
   },
   extraReducers: (builder) => {
     builder
@@ -302,6 +322,9 @@ const slice = createSlice({
       })
       .addCase(fetchAll.fulfilled, (state, action) => {
         state.allPosts = action.payload;
+      })
+      .addCase(fetchPostById.fulfilled, (state, action) => {
+        state.postSelected = action.payload;
       });
   },
 });

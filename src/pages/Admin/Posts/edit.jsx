@@ -1,18 +1,25 @@
 import { yupResolver } from '@hookform/resolvers/yup';
-import { Button, Card, Checkbox, Collapse, Form, Input, Select, message } from 'antd';
+import { Button, Card, Checkbox, Collapse, Form, Input, Radio, Select, message } from 'antd';
 import React, { useEffect, useState } from 'react';
 import { Controller, useForm } from 'react-hook-form';
 import { useDispatch, useSelector } from 'react-redux';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useParams } from 'react-router-dom';
 import * as yup from 'yup';
-import { fetchCategories, fetchTags } from '../../../store/categorySlice';
-import { fetchEditPost } from '../../../store/postSlice';
+import { fetchCategories } from '../../../store/categorySlice';
+import { fetchEditPost, fetchPostById } from '../../../store/postSlice';
+import { fetchTags } from '../../../store/TagsSlice';
+import { successNotification } from '../../../helpers/notificantion';
 
 const schema = yup.object({}).required();
 
 const Edit = () => {
   const editData = useSelector((state) => state.POST.postSelected);
-  console.log('editData', editData);
+  const categories = useSelector((state) => state.CATEGORY.list);
+  const tags = useSelector((state) => state.TAGS.tags);
+  const dispatch = useDispatch();
+  const navigate = useNavigate();
+  const { id } = useParams();
+
   const [selectedTags, setSelectedTags] = useState([]); // To track selected tags
 
   const {
@@ -20,64 +27,65 @@ const Edit = () => {
     handleSubmit,
     formState: { errors },
     control,
-    setValue, // Added to manually set the form value for tags
+    setValue, // Used to manually update form values
   } = useForm({
     resolver: yupResolver(schema),
     defaultValues: {
-      title: editData?.title || '',
-      content: editData?.content || '',
-      // Convert comma-separated string to array for categories
-      categories: editData?.categories ? editData.categories.split(', ') : [],
-      // Split the comma-separated tags string into an array
-      tags: editData?.tags ? editData.tags.split(', ') : [],
-      // Handle status (if multiple, split by comma, else default to 'draft')
-      status: editData?.status ? editData.status.split(', ') : ['draft'],
+      title: '',
+      content: '',
+      categories: [],
+      tags: [],
+      status: 'draft',
     },
   });
-
-  const dispatch = useDispatch();
-  const navigate = useNavigate();
-  const categories = useSelector((state) => state.CATEGORY.list);
-  const tags = useSelector((state) => state.CATEGORY.tags);
 
   const handleMySubmit = async (data) => {
     const updatedData = {
       ...data,
-      id: editData?.id, // include id from editData
+      id: editData?.id, // Include id from editData
     };
     console.log('Updated data with ID:', updatedData);
     const res = await dispatch(fetchEditPost(updatedData));
 
     if (res.payload.status) {
       navigate('/admin/posts');
+      successNotification('Chỉnh sửa thành công!!');
     }
   };
 
   useEffect(() => {
+    if (id) {
+      dispatch(fetchPostById({ id }));
+    }
     dispatch(fetchCategories());
     dispatch(fetchTags());
-  }, [dispatch]);
+  }, [dispatch, id]);
+
+  // Update form values when `editData` changes
+  useEffect(() => {
+    if (editData) {
+      setValue('title', editData.title || '');
+      setValue('content', editData.content || '');
+      setValue('categories', editData.categoryIds || []);
+      setValue('tags', editData.tagsIds || []);
+      setValue('status', editData.status || 'draft');
+    }
+  }, [editData, setValue]);
 
   const handleTagCreate = async () => {
     if (newTag.trim()) {
-      // Check if the tag already exists
       const tagExists = tags.some((tag) => tag.name.toLowerCase() === newTag.trim().toLowerCase());
 
       if (tagExists) {
-        // If tag already exists, show a message and do not create the tag
         message.warning('This tag already exists.');
         return;
       }
 
       try {
         const createdTag = await dispatch(addNewTag({ name: newTag.trim() })).unwrap();
-        // Update the selectedTags list after successful creation
-        setSelectedTags((prevTags) => [
-          ...prevTags,
-          createdTag.id, // Add the new tag id to the selectedTags
-        ]);
-        dispatch(fetchTags()); // Optionally refetch the tag list to include the new tag
-        setNewTag(''); // Clear input after successful creation
+        setSelectedTags((prevTags) => [...prevTags, createdTag.id]);
+        dispatch(fetchTags());
+        setNewTag('');
       } catch (error) {
         console.error('Error creating tag:', error);
       }
@@ -86,14 +94,19 @@ const Edit = () => {
 
   const handleKeyDown = (event) => {
     if (event.key === 'Enter') {
-      event.preventDefault(); // Prevent form submission on Enter key press
-      handleTagCreate(); // Run the API function when Enter is pressed
+      event.preventDefault();
+      handleTagCreate();
     }
   };
 
   return (
     <div className="admin-page">
-      <Card title="Edit Blog Post">
+      <Card>
+        {editData?.title && (
+          <h2 style={{ marginBottom: '50px' }}>
+            Editing Blog Post: <span style={{ color: '#1677ff' }}>{editData.title}</span>
+          </h2>
+        )}
         <Form layout="vertical" onFinish={handleSubmit(handleMySubmit)}>
           <Form.Item label="Title">
             <Controller name="title" render={({ field }) => <Input {...field} />} control={control} defaultValue="" />
@@ -114,8 +127,8 @@ const Edit = () => {
                   name="categories"
                   render={({ field }) => (
                     <Checkbox.Group {...field}>
-                      {categories.map((item, idx) => (
-                        <Checkbox key={idx} value={item.name} checked={field.value.includes(item.name)}>
+                      {categories.map((item) => (
+                        <Checkbox key={item.id} value={item.id} checked={field.value.includes(item.id)}>
                           {item.name}
                         </Checkbox>
                       ))}
@@ -133,24 +146,24 @@ const Edit = () => {
                   render={({ field }) => (
                     <Select
                       {...field}
-                      mode="tags" // Enable typing and adding new tags
+                      mode="tags"
                       allowClear
                       placeholder="Enter or select tags"
                       style={{ width: '100%' }}
                       onChange={(value) => {
-                        setSelectedTags(value); // Update selected tags
-                        field.onChange(value); // Sync with react-hook-form
+                        setSelectedTags(value);
+                        field.onChange(value);
                       }}
-                      value={field.value} // Bind the value to the field's value
+                      value={field.value}
                       options={tags.map((tag) => ({
                         label: tag.name,
                         value: tag.id,
                       }))}
-                      onKeyDown={handleKeyDown} // Attach keyDown handler
+                      onKeyDown={handleKeyDown}
                     />
                   )}
                   control={control}
-                  defaultValue={[]} // Array of selected tags
+                  defaultValue={[]}
                 />
               </Form.Item>
             </Collapse.Panel>
@@ -160,24 +173,17 @@ const Edit = () => {
             <Controller
               name="status"
               render={({ field }) => (
-                <Checkbox.Group
-                  {...field}
-                  checked={field.value || []} // Ensure the value is always an array, default to an empty array if undefined
-                  onChange={(checkedValues) => {
-                    field.onChange(checkedValues); // Pass the updated value to React Hook Form
-                  }}
-                >
-                  <Checkbox value="draft">Draft</Checkbox>
-                  <Checkbox value="public">Public</Checkbox>
-                  <Checkbox value="pending">Pending</Checkbox>
-                </Checkbox.Group>
+                <Radio.Group {...field}>
+                  <Radio value="draft">Draft</Radio>
+                  <Radio value="publish">Publish</Radio>
+                  <Radio value="pending">Pending</Radio>
+                </Radio.Group>
               )}
               control={control}
-              defaultValue={['draft']} // Default value is set to 'draft' if not provided
+              defaultValue={'draft'}
             />
           </Form.Item>
 
-          {/* Save Button placed at the bottom */}
           <Form.Item>
             <Button type="primary" htmlType="submit" style={{ marginTop: '20px' }}>
               Save

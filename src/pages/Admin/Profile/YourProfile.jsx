@@ -1,26 +1,18 @@
 import { PlusOutlined } from '@ant-design/icons';
-import { Button, Col, Form, Image, Input, Row, Upload } from 'antd';
-import React, { useState } from 'react';
+import { yupResolver } from '@hookform/resolvers/yup';
+import { Button, Col, Image, Input, message, Row, Upload } from 'antd';
+import React, { useEffect, useState } from 'react';
+import { Controller, useForm } from 'react-hook-form';
+import { useDispatch, useSelector } from 'react-redux';
+import * as yup from 'yup';
+import { fetchCurrentUser, fetchUpdateCurrentUser } from '../../../store/authSlice';
 
-const layout = {
-  labelCol: {
-    span: 8,
-  },
-  wrapperCol: {
-    span: 16,
-  },
-};
-
-const validateMessages = {
-  required: '${label} is required!',
-  types: {
-    email: '${label} is not a valid email!',
-  },
-};
-
-const onFinish = (values) => {
-  console.log(values);
-};
+const schema = yup
+  .object({
+    nickname: yup.string(),
+    email: yup.string().email('Invalid email').required('Email is required'),
+  })
+  .required();
 
 const getBase64 = (file) =>
   new Promise((resolve, reject) => {
@@ -31,19 +23,80 @@ const getBase64 = (file) =>
   });
 
 const YourProfile = () => {
-  const [previewOpen, setPreviewOpen] = useState(false);
-  const [previewImage, setPreviewImage] = useState('');
+  const dispatch = useDispatch();
+  const editData = useSelector((state) => state.AUTH.currentUser);
   const [fileList, setFileList] = useState([]);
+  const [previewImage, setPreviewImage] = useState('');
+  const [previewOpen, setPreviewOpen] = useState(false);
+
+  const {
+    register,
+    handleSubmit,
+    control,
+    formState: { errors },
+    reset,
+  } = useForm({
+    resolver: yupResolver(schema),
+    defaultValues: {
+      firstName: editData?.firstName || '',
+      lastName: editData?.lastName || '',
+      nickname: editData?.nickname || '',
+      email: editData?.email || '',
+      avatar: null, // Default value for avatar file
+    },
+  });
+
+  useEffect(() => {
+    if (!editData) {
+      dispatch(fetchCurrentUser());
+    }
+
+    if (editData?.file) {
+      setFileList([
+        {
+          uid: '-1',
+          name: 'avatar.png',
+          status: 'done',
+          url: editData.file, // URL of the avatar from editData
+        },
+      ]);
+    }
+
+    reset({
+      firstName: editData?.firstName || '',
+      lastName: editData?.lastName || '',
+      nickname: editData?.nickname || '',
+      email: editData?.email || '',
+      avatar: fileList[0] ? fileList[0]?.originFileObj : null, // Set the avatar file if present
+    });
+  }, [editData, dispatch, reset]);
 
   const handlePreview = async (file) => {
-    if (!file.url && !file.preview) {
-      file.preview = await getBase64(file.originFileObj);
+    try {
+      if (!file.url && !file.preview) {
+        file.preview = await getBase64(file.originFileObj);
+      }
+      setPreviewImage(file.url || file.preview);
+      setPreviewOpen(true);
+    } catch (error) {
+      message.error('Failed to preview image.');
     }
-    setPreviewImage(file.url || file.preview);
-    setPreviewOpen(true);
   };
 
-  const handleChange = ({ fileList: newFileList }) => setFileList(newFileList);
+  const handleChange = ({ fileList: newFileList }) => {
+    setFileList(newFileList);
+  };
+
+  const onSubmit = (data) => {
+    // Handle the form submission including avatar
+    // You can access the avatar with data.avatar (which would be the file object)
+    console.log(fileList);
+
+    const avatarFile = fileList[0]?.url || null;
+    const formData = { ...data, avatar: avatarFile };
+    console.log(formData);
+    dispatch(fetchUpdateCurrentUser(formData));
+  };
 
   const uploadButton = (
     <button
@@ -74,17 +127,17 @@ const YourProfile = () => {
         marginBottom: '50px',
       }}
     >
-      {/* Avatar section */}
+      {/* Avatar Section */}
       <Upload
-        action="https://660d2bd96ddfa2943b33731c.mockapi.io/api/upload"
         listType="picture-circle"
         fileList={fileList}
         onPreview={handlePreview}
         onChange={handleChange}
-        maxCount={1} // Allow only 1 image
+        maxCount={1}
+        beforeUpload={() => false}
+        onRemove={() => setFileList([])} // Handle avatar removal
       >
-        {/* Show the upload button even if an image is uploaded */}
-        {uploadButton}
+        {fileList.length < 1 && uploadButton}
       </Upload>
 
       {previewImage && (
@@ -95,62 +148,75 @@ const YourProfile = () => {
           preview={{
             visible: previewOpen,
             onVisibleChange: (visible) => setPreviewOpen(visible),
-            afterOpenChange: (visible) => !visible && setPreviewImage(''),
           }}
           src={previewImage}
         />
       )}
 
-      <Form
-        {...layout}
-        name="profile-form"
-        onFinish={onFinish}
-        style={{ maxWidth: 600, width: '100%', marginTop: '30px' }}
-        validateMessages={validateMessages}
-      >
+      {/* Profile Form */}
+      <form onSubmit={handleSubmit(onSubmit)} style={{ maxWidth: 600, width: '100%', marginTop: '30px' }}>
         <Row gutter={24}>
           <Col span={12}>
-            <Form.Item name="firstname" label="Firstname" rules={[{ required: true }]}>
-              <Input placeholder="Ba edit" />
-            </Form.Item>
+            <div>
+              <label>First Name</label>
+              <Controller
+                name="firstName"
+                control={control}
+                render={({ field }) => (
+                  <Input {...field} className={`input ${errors.first_name ? 'is-invalid' : ''}`} />
+                )}
+              />
+              <p className="error">{errors.first_name?.message}</p>
+            </div>
           </Col>
-
           <Col span={12}>
-            <Form.Item name="lastname" label="Lastname" rules={[{ required: true }]}>
-              <Input placeholder="Nguyen Van edit" />
-            </Form.Item>
+            <div>
+              <label>Last Name</label>
+              <Controller
+                name="lastName"
+                control={control}
+                render={({ field }) => <Input {...field} className={`input ${errors.last_name ? 'is-invalid' : ''}`} />}
+              />
+              <p className="error">{errors.last_name?.message}</p>
+            </div>
           </Col>
         </Row>
 
         <Row gutter={24}>
           <Col span={12}>
-            <Form.Item name="username" label="Username" rules={[{ required: true }]}>
-              <Input placeholder="nguyenvanba" />
-            </Form.Item>
+            <div>
+              <label>Nickname</label>
+              <Controller
+                name="nickname"
+                control={control}
+                render={({ field }) => (
+                  <Input
+                    {...field}
+                    placeholder="johndoe@example.com"
+                    className={`input ${errors.email ? 'is-invalid' : ''}`}
+                  />
+                )}
+              />
+              <p className="error">{errors.nickname?.message}</p>
+            </div>
           </Col>
-
           <Col span={12}>
-            <Form.Item name="email" label="Email" rules={[{ type: 'email', required: true }]}>
-              <Input placeholder="nguyenvanbaedit@gmail.com" />
-            </Form.Item>
+            <div>
+              <label>Email</label>
+              <Controller
+                name="email"
+                control={control}
+                render={({ field }) => <Input {...field} className={`input ${errors.email ? 'is-invalid' : ''}`} />}
+              />
+              <p className="error">{errors.email?.message}</p>
+            </div>
           </Col>
         </Row>
 
-        <Form.Item name="description" label="Description">
-          <Input.TextArea placeholder="mo ta ngan cua anh Ba" rows={4} />
-        </Form.Item>
-
-        <Form.Item
-          wrapperCol={{
-            span: 24,
-            style: { textAlign: 'center' },
-          }}
-        >
-          <Button type="primary" htmlType="submit" size="large">
-            Save
-          </Button>
-        </Form.Item>
-      </Form>
+        <Button type="primary" htmlType="submit" style={{ marginTop: 20 }}>
+          Save
+        </Button>
+      </form>
     </div>
   );
 };

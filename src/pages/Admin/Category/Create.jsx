@@ -5,6 +5,8 @@ import { Controller, useForm } from 'react-hook-form';
 import { useDispatch, useSelector } from 'react-redux';
 import * as yup from 'yup';
 import { fetchAddCategory } from '../../../store/categorySlice';
+import { useNavigate } from 'react-router-dom';
+import { successNotification } from '../../../helpers/notificantion';
 
 const { Option } = Select;
 
@@ -38,12 +40,16 @@ const Create = () => {
   } = useForm({
     resolver: yupResolver(schema),
   });
+  const navigate = useNavigate();
 
   const parentOptions = categoriesList.map(mappingDataList);
   parentOptions.unshift({ value: '', label: 'None' });
   const handleMySubmit = (data) => {
     console.log(data);
-    dispatch(fetchAddCategory(data));
+    dispatch(fetchAddCategory(data)).then((res) => {
+      navigate('/admin/category/');
+      successNotification('Thêm thành công!!');
+    });
   };
 
   return (

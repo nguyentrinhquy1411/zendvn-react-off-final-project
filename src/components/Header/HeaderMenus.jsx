@@ -90,6 +90,9 @@ function HeaderMenus() {
                   <Link to="/password">Change Pass</Link>
                 </li>
                 <li>
+                  <Link to="/admin">Admin Dashboard</Link>
+                </li>
+                <li>
                   <Link to="#" onClick={handleLogOut}>
                     Đăng xuất
                   </Link>

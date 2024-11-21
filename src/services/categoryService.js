@@ -15,7 +15,12 @@ const categoryService = {
     return API.call().get(`wp/v2/categories?slug=${params.slug}&lang=vi`);
   },
   postCategory(data) {
-    return API.callWithToken().post('wp/v2/categories', data);
+    return (
+      API.callWithToken().post('wp/v2/categories', data),
+      {
+        lang: 'vi',
+      }
+    );
   },
   updateCategory(data) {
     console.log('id', data.id);
@@ -27,13 +32,8 @@ const categoryService = {
       params: { force: true },
     });
   },
-  getTags(param = {}) {
-    return API.callWithToken().get('wp/v2/tags', {
-      params: {
-        per_page: 1000,
-        // lang: 'vi',
-      },
-    });
+  getById(params = {}) {
+    return API.call().get(`wp/v2/categories/${params.id}`);
   },
 };
 

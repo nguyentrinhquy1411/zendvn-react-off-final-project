@@ -1,100 +1,213 @@
-import React from 'react';
-import { Button, Form, Input, InputNumber, Row, Col, Upload } from 'antd';
-import { UploadOutlined } from '@ant-design/icons';
+import React, { useState } from 'react';
+import { Button, Col, Row, Upload, Image, message, Input } from 'antd';
+import { PlusOutlined } from '@ant-design/icons';
+import { useForm, Controller } from 'react-hook-form';
+import { yupResolver } from '@hookform/resolvers/yup';
+import * as yup from 'yup';
+import { useDispatch } from 'react-redux';
+import { addUser } from '../../../store/usersSlice';
 
-const layout = {
-  labelCol: {
-    span: 8,
-  },
-  wrapperCol: {
-    span: 16,
-  },
-};
+// Validation schema using yup
+const schema = yup
+  .object({
+    name: yup.string().required('Username is required'),
+    email: yup.string().email('Invalid email').required('Email is required'),
+    firstName: yup.string(),
+    lastName: yup.string(),
+    password: yup.string().required('Password is required'),
+    nickname: yup.string().required('Nickname is required'), // Added validation for nickname
+  })
+  .required();
 
-const validateMessages = {
-  required: '${label} is required!',
-  types: {
-    email: '${label} is not a valid email!',
-    number: '${label} is not a valid number!',
-  },
-  number: {
-    range: '${label} must be between ${min} and ${max}',
-  },
-};
+// Helper function to convert file to base64
+const getBase64 = (file) =>
+  new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.readAsDataURL(file);
+    reader.onload = () => resolve(reader.result);
+    reader.onerror = (error) => reject(error);
+  });
 
-const onFinish = (values) => {
-  console.log(values);
-};
+const AddUser = () => {
+  const [fileList, setFileList] = useState([]);
+  const [previewImage, setPreviewImage] = useState('');
+  const [previewOpen, setPreviewOpen] = useState(false);
+  const dispatch = useDispatch();
 
-const AddUser = () => (
-  <div
-    style={{
-      display: 'flex',
-      flexDirection: 'column',
-      alignItems: 'center',
-      marginTop: '50px',
-    }}
-  >
-    <Form
-      {...layout}
-      name="nest-messages"
-      onFinish={onFinish}
-      style={{ maxWidth: 800, margin: '50px 0px 0px 0px ' }} // Increased the form width
-      validateMessages={validateMessages}
+  const {
+    handleSubmit,
+    control,
+    formState: { errors },
+  } = useForm({
+    resolver: yupResolver(schema),
+    defaultValues: {
+      name: '',
+      email: '',
+      firstName: '',
+      lastName: '',
+      password: '',
+      nickname: '', // Default value for nickname
+      avatar: null, // Avatar managed separately
+    },
+  });
+
+  // Handle form submission
+  const onSubmit = (data) => {
+    const avatarFile = fileList[0]?.originFileObj || null;
+    const formData = { ...data, file: avatarFile };
+    if (formData.file) {
+      const dataFile = new FormData();
+      dataFile.append('file', formData.file); // Attach the file if present
+      formData.dataFile = dataFile;
+    }
+    console.log('Submitted Data:', formData);
+    dispatch(addUser(formData));
+  };
+
+  // Handle file preview
+  const handlePreview = async (file) => {
+    try {
+      if (!file.url && !file.preview) {
+        file.preview = await getBase64(file.originFileObj);
+      }
+      setPreviewImage(file.url || file.preview);
+      setPreviewOpen(true);
+    } catch (error) {
+      message.error('Failed to preview image.');
+    }
+  };
+
+  // Handle file upload changes
+  const handleChange = ({ fileList: newFileList }) => {
+    setFileList(newFileList);
+  };
+
+  // Custom upload button
+  const uploadButton = (
+    <div>
+      <PlusOutlined />
+      <div style={{ marginTop: 8 }}>Upload</div>
+    </div>
+  );
+
+  return (
+    <div
+      style={{
+        display: 'flex',
+        flexDirection: 'column',
+        alignItems: 'center',
+        marginTop: '50px',
+      }}
     >
-      <Row justify="center" style={{ marginBottom: '30px' }}>
-        {' '}
-        {/* Center the Upload button */}
-        <Upload action="https://660d2bd96ddfa2943b33731c.mockapi.io/api/upload" listType="picture" maxCount={1}>
-          <Button icon={<UploadOutlined />}>Upload</Button>
-        </Upload>
-      </Row>
-      <Row gutter={24}>
-        <Col span={12}>
-          <Form.Item name={['user', 'name']} label="Username" rules={[{ required: true }]}>
-            <Input size="large" /> {/* Increased input size */}
-          </Form.Item>
-        </Col>
-        <Col span={12}>
-          <Form.Item name={['user', 'email']} label="Email" rules={[{ required: true, type: 'email' }]}>
-            <Input size="large" /> {/* Increased input size */}
-          </Form.Item>
-        </Col>
-        <Col span={12}>
-          <Form.Item name={['user', 'firstName']} label="First name" rules={[{ type: 'text' }]}>
-            <InputNumber size="large" style={{ width: '100%' }} /> {/* Adjusted width */}
-          </Form.Item>
-        </Col>
-        <Col span={12}>
-          <Form.Item name={['user', 'lastName']} label="Last name" rules={[{ type: 'text' }]}>
-            <Input size="large" />
-          </Form.Item>
-        </Col>
-        <Col span={20}>
-          <Form.Item
-            name={['user', 'password']}
-            label="Password"
-            rules={[{ required: true, message: 'Please input your password!' }]}
+      <form onSubmit={handleSubmit(onSubmit)} style={{ maxWidth: 800, width: '100%' }}>
+        {/* Avatar Upload Section */}
+        <Row justify="center" style={{ marginBottom: '30px' }}>
+          <Upload
+            listType="picture-circle"
+            fileList={fileList}
+            onPreview={handlePreview}
+            onChange={handleChange}
+            maxCount={1}
+            beforeUpload={() => false} // Prevent automatic upload
+            onRemove={() => setFileList([])} // Clear file on removal
           >
-            <Input.Password />
-            {/* Larger text area */}
-          </Form.Item>
-        </Col>
-        <Col span={24}>
-          <Form.Item
-            wrapperCol={{
-              ...layout.wrapperCol,
-              offset: 8,
+            {fileList.length < 1 && uploadButton}
+          </Upload>
+        </Row>
+
+        {/* Preview Image */}
+        {previewImage && (
+          <Image
+            wrapperStyle={{
+              display: 'none',
             }}
-          >
-            <Button type="primary" size="large" htmlType="submit">
-              Submit
-            </Button>
-          </Form.Item>
-        </Col>
-      </Row>
-    </Form>
-  </div>
-);
+            preview={{
+              visible: previewOpen,
+              onVisibleChange: (visible) => setPreviewOpen(visible),
+            }}
+            src={previewImage}
+          />
+        )}
+
+        {/* Form Fields */}
+        <Row gutter={24}>
+          <Col span={12}>
+            <div>
+              <label>Username</label>
+              <Controller
+                name="name"
+                control={control}
+                render={({ field }) => <Input {...field} className={`input ${errors.name ? 'is-invalid' : ''}`} />}
+              />
+              <p className="error">{errors.name?.message}</p>
+            </div>
+          </Col>
+          <Col span={12}>
+            <div>
+              <label>Email</label>
+              <Controller
+                name="email"
+                control={control}
+                render={({ field }) => <Input {...field} className={`input ${errors.email ? 'is-invalid' : ''}`} />}
+              />
+              <p className="error">{errors.email?.message}</p>
+            </div>
+          </Col>
+          <Col span={12}>
+            <div>
+              <label>First Name</label>
+              <Controller
+                name="firstName"
+                control={control}
+                render={({ field }) => <Input {...field} className={`input ${errors.firstName ? 'is-invalid' : ''}`} />}
+              />
+            </div>
+          </Col>
+          <Col span={12}>
+            <div>
+              <label>Last Name</label>
+              <Controller
+                name="lastName"
+                control={control}
+                render={({ field }) => <Input {...field} className={`input ${errors.lastName ? 'is-invalid' : ''}`} />}
+              />
+            </div>
+          </Col>
+          <Col span={12}>
+            <div>
+              <label>Nickname</label>
+              <Controller
+                name="nickname"
+                control={control}
+                render={({ field }) => <Input {...field} className={`input ${errors.nickname ? 'is-invalid' : ''}`} />}
+              />
+              <p className="error">{errors.nickname?.message}</p>
+            </div>
+          </Col>
+          <Col span={12}>
+            <div>
+              <label>Password</label>
+              <Controller
+                name="password"
+                control={control}
+                render={({ field }) => (
+                  <Input {...field} type="password" className={`input ${errors.password ? 'is-invalid' : ''}`} />
+                )}
+              />
+              <p className="error">{errors.password?.message}</p>
+            </div>
+          </Col>
+        </Row>
+
+        {/* Submit Button */}
+        <Row justify="center">
+          <Button type="primary" size="large" htmlType="submit">
+            Submit
+          </Button>
+        </Row>
+      </form>
+    </div>
+  );
+};
 
 export default AddUser;

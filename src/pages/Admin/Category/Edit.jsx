@@ -3,9 +3,10 @@ import { Button, Col, Form, Input, Row, Select } from 'antd';
 import React, { useEffect } from 'react';
 import { Controller, useForm } from 'react-hook-form';
 import { useDispatch, useSelector } from 'react-redux';
+import { useNavigate, useParams } from 'react-router-dom';
 import * as yup from 'yup';
-import { fetchAddCategory, fetchEditCategory } from '../../../store/categorySlice';
-import { useNavigate } from 'react-router-dom';
+import { fetchCategoryById, fetchEditCategory } from '../../../store/categorySlice';
+import { successNotification } from '../../../helpers/notificantion';
 
 const { Option } = Select;
 
@@ -47,6 +48,8 @@ const Edit = () => {
     },
   });
   const navigate = useNavigate();
+  const { id } = useParams(); // Extracted 'id' from the route
+  console.log(id); // Outputs: 9
 
   console.log(editData);
 
@@ -62,6 +65,7 @@ const Edit = () => {
 
     if (res.payload.status) {
       navigate('/admin/category');
+      successNotification('Chỉnh sửa thành công!!');
     }
   };
 
@@ -75,6 +79,10 @@ const Edit = () => {
       });
     }
   }, [editData, reset]);
+
+  useEffect(() => {
+    dispatch(fetchCategoryById({ id }));
+  }, [id]);
 
   return (
     <div
@@ -91,6 +99,14 @@ const Edit = () => {
         <input type="text" {...register('slug')} />
         <button type="submit">submit</button>
       </form> */}
+
+      {/* Display the category name */}
+      {editData?.name && (
+        <h2 style={{ marginBottom: '50px' }}>
+          Editing Category: <span style={{ color: '#1677ff' }}>{editData.name}</span>
+        </h2>
+      )}
+
       <Form
         {...layout}
         name="basic"

@@ -1,7 +1,7 @@
 // 2. xu ly viết logic để thông tin tất cả category
 import { createAsyncThunk, createSlice } from '@reduxjs/toolkit';
 import usersService from '../services/usersService';
-import { mappingUsersData } from '../helpers';
+import { mappingTagsData, mappingUsersData } from '../helpers';
 import tagsService from '../services/tagsService';
 
 const initialState = {
@@ -10,6 +10,7 @@ const initialState = {
     list: [],
     total: 0,
   },
+  tags: [],
 };
 
 export const addNewTag = createAsyncThunk('tags/addNewTag', async (params, thunkAPI) => {
@@ -22,11 +23,28 @@ export const addNewTag = createAsyncThunk('tags/addNewTag', async (params, thunk
   }
 });
 
+export const fetchTags = createAsyncThunk('category/fetchTags', async (params, thunkAPI) => {
+  try {
+    const res = await tagsService.getTags();
+    console.log('tags', res);
+
+    const data = res.data.map(mappingTagsData);
+
+    return data;
+  } catch (err) {
+    console.log(err);
+  }
+});
+
 const slice = createSlice({
   name: 'tags',
   initialState: initialState,
   reducers: {},
-  extraReducers: (builder) => {},
+  extraReducers: (builder) => {
+    builder.addCase(fetchTags.fulfilled, (state, action) => {
+      state.tags = action.payload;
+    });
+  },
 });
 
 const { actions, reducer } = slice;
