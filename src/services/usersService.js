@@ -20,6 +20,12 @@ const usersService = {
   addUser(data) {
     return API.callWithToken().post('wp/v2/users/', { ...data, lang: 'vi' });
   },
+  updateUser(data) {
+    return API.callWithToken().put(`wp/v2/users/${data.id}`, data);
+  },
+  getUserById(data) {
+    return API.callWithToken().get(`wp/v2/users/${data}`);
+  },
 };
 
 export default usersService;

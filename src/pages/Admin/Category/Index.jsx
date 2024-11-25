@@ -17,6 +17,8 @@ const Index = () => {
   const navigate = useNavigate();
   const location = useLocation();
 
+  console.log(location);
+
   const data = useSelector((state) => state.CATEGORY.adminList.list);
 
   // Parse query parameters from URL
@@ -27,6 +29,8 @@ const Index = () => {
     pageSize: Number(per_page),
     total: 0,
   });
+
+  console.log('pagination', pagination);
 
   useEffect(() => {
     setLoading(true);
@@ -100,7 +104,7 @@ const Index = () => {
       </div>
     ),
     filterIcon: (filtered) => <SearchOutlined style={{ color: filtered ? '#1677ff' : undefined }} />,
-    onFilter: (value, record) => record[dataIndex]?.toString().toLowerCase().includes(value.toLowerCase()),
+    // onFilter: (value, record) => record[dataIndex]?.toString().toLowerCase().includes(value.toLowerCase()),
     onFilterDropdownOpenChange: (visible) => {
       if (visible) {
         setTimeout(() => searchInput.current?.select(), 100);

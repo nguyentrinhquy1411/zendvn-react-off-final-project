@@ -55,7 +55,7 @@ const Index = () => {
     total: 0,
   });
 
-  console.log('posts', postList);
+  console.log('data', data);
 
   useEffect(() => {
     setLoading(true);
@@ -193,7 +193,6 @@ const Index = () => {
         }}
       />
     ),
-    onFilter: (value, record) => record[dataIndex].toString().toLowerCase().includes(value.toLowerCase()),
     onFilterDropdownOpenChange: (visible) => {
       if (visible) {
         setTimeout(() => searchInput.current?.select(), 100);

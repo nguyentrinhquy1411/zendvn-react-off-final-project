@@ -1,10 +1,12 @@
-import { yupResolver } from '@hookform/resolvers/yup';
-import { Button, Card, Checkbox, Collapse, Form, Input, Radio, Select, Space, message } from 'antd';
 import React, { useEffect, useState } from 'react';
+import { Button, Card, Checkbox, Collapse, Form, Input, Radio, Select, Space, message } from 'antd';
 import { Controller, useForm } from 'react-hook-form';
+import { yupResolver } from '@hookform/resolvers/yup';
 import { useDispatch, useSelector } from 'react-redux';
 import { useNavigate } from 'react-router-dom';
 import * as yup from 'yup';
+import { CKEditor } from '@ckeditor/ckeditor5-react';
+import ClassicEditor from '@ckeditor/ckeditor5-build-classic';
 import { successNotification } from '../../../helpers/notificantion';
 import { fetchCategories } from '../../../store/categorySlice';
 import { fetchAddPost } from '../../../store/postSlice';
@@ -32,8 +34,6 @@ const Create = () => {
   const handleMySubmit = (data) => {
     console.log('data submit', data);
     dispatch(fetchAddPost(data)).then((res) => {
-      console.log(res.payload.status);
-
       if (res.payload.status) {
         navigate('/admin/posts');
         successNotification('Thêm bài viết thành công!!');
@@ -55,9 +55,9 @@ const Create = () => {
     }
 
     try {
-      const createdTag = await dispatch(addNewTag({ name: newTag })).unwrap(); // Use `unwrap` for correct promise handling
+      const createdTag = await dispatch(addNewTag({ name: newTag })).unwrap();
       setSelectedTags((prevTags) => [...prevTags, createdTag.id]);
-      dispatch(fetchTags()); // Refresh tags list
+      dispatch(fetchTags());
       setNewTag('');
     } catch (error) {
       console.error('Error creating tag:', error);
@@ -87,7 +87,16 @@ const Create = () => {
           <Form.Item label="Content">
             <Controller
               name="content"
-              render={({ field }) => <Input.TextArea {...field} rows={4} />}
+              render={({ field: { onChange, value } }) => (
+                <CKEditor
+                  editor={ClassicEditor}
+                  data={value || ''}
+                  onChange={(event, editor) => {
+                    const data = editor.getData();
+                    onChange(data);
+                  }}
+                />
+              )}
               control={control}
               defaultValue=""
             />

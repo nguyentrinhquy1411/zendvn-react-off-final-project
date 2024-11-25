@@ -3,7 +3,7 @@ import { Button, Col, Form, Input, Row, Select } from 'antd';
 import React, { useEffect } from 'react';
 import { Controller, useForm } from 'react-hook-form';
 import { useDispatch, useSelector } from 'react-redux';
-import { useNavigate, useParams } from 'react-router-dom';
+import { Link, useNavigate, useParams } from 'react-router-dom';
 import * as yup from 'yup';
 import { fetchCategoryById, fetchEditCategory } from '../../../store/categorySlice';
 import { successNotification } from '../../../helpers/notificantion';
@@ -157,6 +157,9 @@ const Edit = () => {
                 offset: 6,
               }}
             >
+              <Link to="/admin/category" style={{ marginRight: '10px' }}>
+                <Button>Back</Button>
+              </Link>
               <Button type="primary" htmlType="submit">
                 Save
               </Button>

@@ -1,7 +1,7 @@
 // 2. xu ly viết logic để thông tin tất cả category
 import { createAsyncThunk, createSlice } from '@reduxjs/toolkit';
 import usersService from '../services/usersService';
-import { mappingUsersData } from '../helpers';
+import { mappingProfileData, mappingUsersData } from '../helpers';
 import authService from '../services/authService';
 
 const initialState = {
@@ -10,6 +10,7 @@ const initialState = {
     list: [],
     total: 0,
   },
+  selectedUser: {},
 };
 
 export const fetchUsers = createAsyncThunk('users/fetchUsers', async (params, thunkAPI) => {
@@ -19,6 +20,21 @@ export const fetchUsers = createAsyncThunk('users/fetchUsers', async (params, th
     console.log(res);
 
     const data = res.data.map(mappingUsersData);
+    return data;
+  } catch (err) {
+    console.log(err);
+  }
+});
+
+export const fetchUserById = createAsyncThunk('users/fetchUserById', async (params, thunkAPI) => {
+  try {
+    console.log('worked');
+
+    const res = await usersService.getUserById(params);
+
+    console.log(res);
+
+    const data = mappingProfileData(res.data);
     return data;
   } catch (err) {
     console.log(err);
@@ -54,6 +70,25 @@ export const addUser = createAsyncThunk('profile/addUser', async (data, thunkAPI
     return rejectWithValue({ status: false });
   }
 });
+export const updateUser = createAsyncThunk('profile/updateUser', async (data, thunkAPI) => {
+  const { rejectWithValue, dispatch } = thunkAPI;
+
+  try {
+    console.log(data);
+
+    if (data.dataFile) {
+      const resMedia = await authService.uploadMeida(data.dataFile);
+      data.simple_local_avatar = { media_id: resMedia.data.id };
+    }
+
+    await usersService.updateUser(data);
+
+    return { status: true };
+  } catch (err) {
+    console.log(err);
+    return rejectWithValue({ status: false });
+  }
+});
 
 const slice = createSlice({
   name: 'users',
@@ -62,6 +97,9 @@ const slice = createSlice({
   extraReducers: (builder) => {
     builder.addCase(fetchUsers.fulfilled, (state, action) => {
       state.usersPaging.list = action.payload;
+    });
+    builder.addCase(fetchUserById.fulfilled, (state, action) => {
+      state.selectedUser = action.payload;
     });
   },
 });

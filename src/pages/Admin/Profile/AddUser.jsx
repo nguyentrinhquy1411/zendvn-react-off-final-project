@@ -6,14 +6,16 @@ import { yupResolver } from '@hookform/resolvers/yup';
 import * as yup from 'yup';
 import { useDispatch } from 'react-redux';
 import { addUser } from '../../../store/usersSlice';
+import { successNotification } from '../../../helpers/notificantion';
+import { useNavigate } from 'react-router-dom';
 
 // Validation schema using yup
 const schema = yup
   .object({
-    name: yup.string().required('Username is required'),
+    username: yup.string().required('Username is required'),
     email: yup.string().email('Invalid email').required('Email is required'),
-    firstName: yup.string(),
-    lastName: yup.string(),
+    first_name: yup.string(),
+    last_name: yup.string(),
     password: yup.string().required('Password is required'),
     nickname: yup.string().required('Nickname is required'), // Added validation for nickname
   })
@@ -33,6 +35,7 @@ const AddUser = () => {
   const [previewImage, setPreviewImage] = useState('');
   const [previewOpen, setPreviewOpen] = useState(false);
   const dispatch = useDispatch();
+  const navigate = useNavigate();
 
   const {
     handleSubmit,
@@ -41,10 +44,10 @@ const AddUser = () => {
   } = useForm({
     resolver: yupResolver(schema),
     defaultValues: {
-      name: '',
+      username: '',
       email: '',
-      firstName: '',
-      lastName: '',
+      first_name: '',
+      last_name: '',
       password: '',
       nickname: '', // Default value for nickname
       avatar: null, // Avatar managed separately
@@ -53,7 +56,7 @@ const AddUser = () => {
 
   // Handle form submission
   const onSubmit = (data) => {
-    const avatarFile = fileList[0]?.originFileObj || null;
+    const avatarFile = fileList[0].originFileObj || null;
     const formData = { ...data, file: avatarFile };
     if (formData.file) {
       const dataFile = new FormData();
@@ -61,7 +64,12 @@ const AddUser = () => {
       formData.dataFile = dataFile;
     }
     console.log('Submitted Data:', formData);
-    dispatch(addUser(formData));
+    dispatch(addUser(formData)).then((res) => {
+      if (res.payload.status) {
+        navigate('/admin/posts');
+        successNotification('Thêm người dùng thành công!!');
+      }
+    });
   };
 
   // Handle file preview
@@ -81,6 +89,7 @@ const AddUser = () => {
   const handleChange = ({ fileList: newFileList }) => {
     setFileList(newFileList);
   };
+  console.log('fileList', fileList);
 
   // Custom upload button
   const uploadButton = (
@@ -135,7 +144,7 @@ const AddUser = () => {
             <div>
               <label>Username</label>
               <Controller
-                name="name"
+                name="username"
                 control={control}
                 render={({ field }) => <Input {...field} className={`input ${errors.name ? 'is-invalid' : ''}`} />}
               />
@@ -157,7 +166,7 @@ const AddUser = () => {
             <div>
               <label>First Name</label>
               <Controller
-                name="firstName"
+                name="first_name"
                 control={control}
                 render={({ field }) => <Input {...field} className={`input ${errors.firstName ? 'is-invalid' : ''}`} />}
               />
@@ -167,7 +176,7 @@ const AddUser = () => {
             <div>
               <label>Last Name</label>
               <Controller
-                name="lastName"
+                name="last_name"
                 control={control}
                 render={({ field }) => <Input {...field} className={`input ${errors.lastName ? 'is-invalid' : ''}`} />}
               />

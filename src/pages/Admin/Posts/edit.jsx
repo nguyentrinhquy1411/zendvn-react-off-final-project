@@ -3,12 +3,14 @@ import { Button, Card, Checkbox, Collapse, Form, Input, Radio, Select, message }
 import React, { useEffect, useState } from 'react';
 import { Controller, useForm } from 'react-hook-form';
 import { useDispatch, useSelector } from 'react-redux';
-import { useNavigate, useParams } from 'react-router-dom';
+import { Link, useNavigate, useParams } from 'react-router-dom';
 import * as yup from 'yup';
 import { fetchCategories } from '../../../store/categorySlice';
 import { fetchEditPost, fetchPostById } from '../../../store/postSlice';
 import { fetchTags } from '../../../store/TagsSlice';
 import { successNotification } from '../../../helpers/notificantion';
+import { CKEditor } from '@ckeditor/ckeditor5-react';
+import ClassicEditor from '@ckeditor/ckeditor5-build-classic';
 
 const schema = yup.object({}).required();
 
@@ -114,7 +116,16 @@ const Edit = () => {
           <Form.Item label="Content">
             <Controller
               name="content"
-              render={({ field }) => <Input.TextArea {...field} rows={4} />}
+              render={({ field: { onChange, value } }) => (
+                <CKEditor
+                  editor={ClassicEditor}
+                  data={value || ''}
+                  onChange={(event, editor) => {
+                    const data = editor.getData();
+                    onChange(data);
+                  }}
+                />
+              )}
               control={control}
               defaultValue=""
             />
@@ -185,6 +196,9 @@ const Edit = () => {
           </Form.Item>
 
           <Form.Item>
+            <Link to="/admin/posts" style={{ marginRight: '10px' }}>
+              <Button>Back</Button>
+            </Link>
             <Button type="primary" htmlType="submit" style={{ marginTop: '20px' }}>
               Save
             </Button>

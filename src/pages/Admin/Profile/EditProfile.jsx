@@ -4,8 +4,9 @@ import { Button, Col, Image, Input, message, Row, Upload } from 'antd';
 import React, { useEffect, useState } from 'react';
 import { Controller, useForm } from 'react-hook-form';
 import { useDispatch, useSelector } from 'react-redux';
+import { useParams } from 'react-router-dom';
 import * as yup from 'yup';
-import { fetchCurrentUser, fetchUpdateCurrentUser } from '../../../store/authSlice';
+import { fetchUserById, updateUser } from '../../../store/usersSlice';
 
 const schema = yup
   .object({
@@ -22,9 +23,9 @@ const getBase64 = (file) =>
     reader.onerror = (error) => reject(error);
   });
 
-const YourProfile = () => {
+const EditProfile = () => {
   const dispatch = useDispatch();
-  const editData = useSelector((state) => state.AUTH.currentUser);
+  const editData = useSelector((state) => state.USERS.selectedUser);
   const [fileList, setFileList] = useState([]);
   const [previewImage, setPreviewImage] = useState('');
   const [previewOpen, setPreviewOpen] = useState(false);
@@ -46,14 +47,18 @@ const YourProfile = () => {
       avatar: null, // Default value for avatar file
     },
   });
+  const { id } = useParams();
 
-  console.log(editData);
+  console.log('editData', editData);
+  console.log('id', editData);
 
   useEffect(() => {
-    if (!editData) {
-      dispatch(fetchCurrentUser());
+    if (id) {
+      dispatch(fetchUserById(id));
     }
+  }, [dispatch, id]);
 
+  useEffect(() => {
     if (editData?.file) {
       setFileList([
         {
@@ -104,7 +109,7 @@ const YourProfile = () => {
       formData.dataFile = dataFile;
     }
     console.log(formData);
-    dispatch(fetchUpdateCurrentUser(formData));
+    dispatch(updateUser(formData));
   };
 
   const uploadButton = (
@@ -241,4 +246,4 @@ const YourProfile = () => {
   );
 };
 
-export default YourProfile;
+export default EditProfile;

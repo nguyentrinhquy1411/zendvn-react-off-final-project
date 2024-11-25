@@ -159,7 +159,6 @@ const Index = () => {
         }}
       />
     ),
-    onFilter: (value, record) => record[dataIndex].toString().toLowerCase().includes(value.toLowerCase()),
     onFilterDropdownOpenChange: (visible) => {
       if (visible) {
         setTimeout(() => searchInput.current?.select(), 100);
@@ -239,8 +238,8 @@ const Index = () => {
       key: 'action',
       render: (_, record) => (
         <Space size="middle">
-          <Button type="link" onClick={() => handleEdit(record)}>
-            <Link to={'/admin/users/:id/edit'}>Edit</Link>
+          <Button type="link" onClick={() => handleEdit(record.id)}>
+            <Link to={`/admin/profile/${record.id}/edit`}>Edit</Link>
           </Button>
           <Popconfirm title="Sure to delete?" onConfirm={() => handleDelete(record.id)}>
             <Button type="link" danger>

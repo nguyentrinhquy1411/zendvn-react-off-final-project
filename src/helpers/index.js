@@ -57,12 +57,13 @@ export function mappingCommentData(item) {
 
 export function mappingProfileData(item) {
   return {
-    file: item.simple_local_avatar.full,
+    file: item.simple_local_avatar?.full || null,
     id: item.id,
     email: item.email,
     nickname: item.nickname,
-    firstName: item.first_name,
-    lastName: item.last_name,
+    user_name: item.user_name,
+    first_name: item.first_name,
+    last_name: item.last_name,
     description: item.description,
   };
 }
@@ -79,5 +80,7 @@ export function mappingUsersData(item) {
     nickname: item.nickname,
     email: item.email,
     username: item.user_name,
+    first_name: item.first_name,
+    last_name: item.last_name,
   };
 }

@@ -17,3 +17,8 @@
     margin: 0 auto;
     /* Center horizontally */
 }
+
+.ck-editor__editable {
+    min-height: 300px;
+    /* Set desired height */
+}

@@ -8,6 +8,7 @@ import AdminLayout from './pages/Admin/Index';
 import AdminCategoryList from './pages/Admin/Category/Index';
 import AdminCategoryCreate from './pages/Admin/Category/Create';
 import AdminCategoryEdit from './pages/Admin/Category/Edit';
+import EditUser from './pages/Admin/Profile/EditProfile';
 import AdminDashboard from './pages/Admin/Dashboard';
 import AddUser from './pages/Admin/Profile/addUser';
 import UsersList from './pages/Admin/Profile/UsersList';
@@ -59,6 +60,7 @@ function App() {
             <Route path="category/:id/edit" element={<AdminCategoryEdit />} />
             <Route path="profile" element={<UsersList />} />
             <Route path="profile/create" element={<AddUser />} />
+            <Route path="profile/:id/edit" element={<EditUser />} />
             <Route path="profile/me" element={<YourProfile />} />
             <Route path="posts/" element={<AdminPostList />} />
             <Route path="posts/create" element={<AdminCreatePost />} />
