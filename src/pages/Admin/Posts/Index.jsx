@@ -55,8 +55,6 @@ const Index = () => {
     total: 0,
   });
 
-  console.log('data', data);
-
   useEffect(() => {
     setLoading(true);
     dispatch(
@@ -216,7 +214,6 @@ const Index = () => {
 
   const handleDelete = async (key) => {
     setLoading(true); // Show loading while deleting
-    console.log(key);
 
     try {
       // Dispatch the delete action and wait for it to finish
@@ -238,8 +235,6 @@ const Index = () => {
   };
 
   const handleEdit = (key) => {
-    console.log('Edit record:', key);
-    dispatch(actSavePostInfo(key));
     // You can implement a modal or form to edit the record here
   };
 
@@ -281,13 +276,11 @@ const Index = () => {
       key: 'action',
       render: (_, record) => (
         <Space size="middle">
-          <Button type="link" onClick={() => handleEdit(record)}>
+          <Button type="primary" onClick={() => handleEdit(record)}>
             <Link to={`/admin/posts/${record.id}/edit`}>Edit</Link>
           </Button>
           <Popconfirm title="Sure to delete?" onConfirm={() => handleDelete(record.id)}>
-            <Button type="link" danger>
-              Delete
-            </Button>
+            <Button danger>Delete</Button>
           </Popconfirm>
         </Space>
       ),

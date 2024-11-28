@@ -22,6 +22,7 @@ import HomePage from './pages/HomePage';
 import LoginPage from './pages/LoginPage';
 import PostDetailPage from './pages/PostDetailPage';
 import ProfilePage from './pages/ProfilePage';
+import NotFoundPage from './pages/ErrorPage';
 import RegisterPage from './pages/RegisterPage';
 import SearchPage from './pages/SearchPage';
 import { fetchCurrentUser } from './store/authSlice';
@@ -66,6 +67,7 @@ function App() {
             <Route path="posts/create" element={<AdminCreatePost />} />
             <Route path="posts/:id/edit" element={<AdminEditPost />} />
           </Route>
+          <Route path="*" element={<NotFoundPage />} />
         </Routes>
         {isGuestLayout && (
           <>

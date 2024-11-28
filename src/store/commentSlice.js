@@ -39,11 +39,9 @@ export const fetchNewComment = createAsyncThunk('detail/fetchNewComment', async 
   const { rejectWithValue } = thunkAPI;
   try {
     const res = await commentService.putNewComment(data);
-    console.log(res);
 
     return { status: true, data };
   } catch (err) {
-    console.log(err);
     rejectWithValue({ status: false });
   }
 });
@@ -55,7 +53,6 @@ export const fetchNewChildComment = createAsyncThunk('detail/fetchNewChildCommen
 
     return { status: true, data };
   } catch (err) {
-    console.log(err);
     rejectWithValue({ status: false });
   }
 });
@@ -70,9 +67,7 @@ export const fetchComments = createAsyncThunk('detail/fetchComments', async (par
     const data = res.data.map(mappingCommentData);
 
     return { list: data, totalpages, commentRemain, currentPage: params.currentPage };
-  } catch (err) {
-    console.log(err);
-  }
+  } catch (err) {}
 });
 
 export const fetchChildComments = createAsyncThunk('detail/fetchChildComments', async (params = {}, thunkAPI) => {
@@ -82,16 +77,10 @@ export const fetchChildComments = createAsyncThunk('detail/fetchChildComments', 
     const total = parseInt(res.headers['x-wp-total']);
     const commentRemain = total - params.currentPage * 2;
 
-    console.log('res', res);
-
     const childComments = res.data.map(mappingCommentData);
 
-    console.log('childComments', childComments);
-
     return { list: childComments, totalpages, currentPage: params.currentPage, commentRemain, parent: params.parent };
-  } catch (err) {
-    console.log(err);
-  }
+  } catch (err) {}
 });
 
 const slice = createSlice({
@@ -112,7 +101,6 @@ const slice = createSlice({
       .addCase(fetchChildComments.fulfilled, (state, action) => {
         const payload = action.payload;
         const { list, currentPage, parent } = payload;
-        console.log('parent', parent);
 
         state.commentChildData = {
           [parent]: {
@@ -123,8 +111,6 @@ const slice = createSlice({
         };
       })
       .addCase(fetchNewComment.fulfilled, (state, action) => {
-        console.log(action.payload);
-
         state.newComment = action.payload.data;
         state.postComments.list.unshift(action.payload.data);
       })

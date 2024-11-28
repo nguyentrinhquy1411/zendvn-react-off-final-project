@@ -1,12 +1,12 @@
 import { yupResolver } from '@hookform/resolvers/yup';
-import { Button, Col, Form, Input, Row, Select } from 'antd';
-import React from 'react';
+import { Button, Col, Form, Input, Row, Select, Spin } from 'antd';
+import React, { useState } from 'react';
 import { Controller, useForm } from 'react-hook-form';
 import { useDispatch, useSelector } from 'react-redux';
 import * as yup from 'yup';
 import { fetchAddCategory } from '../../../store/categorySlice';
 import { useNavigate } from 'react-router-dom';
-import { successNotification } from '../../../helpers/notificantion';
+import { errorNotification, successNotification } from '../../../helpers/notificantion';
 
 const { Option } = Select;
 
@@ -24,13 +24,14 @@ function mappingDataList(item) {
 
 const schema = yup
   .object({
-    name: yup.string().required('bat buoc nhap'),
-    slug: yup.string(),
+    name: yup.string().required('Vui lòng nhập tên'),
+    slug: yup.string().required('Vui lòng nhập slug'),
   })
   .required();
 
 const Create = () => {
   const categoriesList = useSelector((state) => state.CATEGORY.list);
+  const [loading, setLoading] = useState(false); // Loading state
   const dispatch = useDispatch();
   const {
     register,
@@ -44,12 +45,19 @@ const Create = () => {
 
   const parentOptions = categoriesList.map(mappingDataList);
   parentOptions.unshift({ value: '', label: 'None' });
+
   const handleMySubmit = (data) => {
+    setLoading(true);
     console.log(data);
-    dispatch(fetchAddCategory(data)).then((res) => {
-      navigate('/admin/category/');
-      successNotification('Thêm thành công!!');
-    });
+    // dispatch(fetchAddCategory(data)).then((res) => {
+    //   setLoading(false);
+    //   if (res.payload.status) {
+    //     navigate('/admin/category/');
+    //     successNotification('Thêm thành công!!');
+    //   } else {
+    //     errorNotification('Thêm mới thất bại');
+    //   }
+    // });
   };
 
   return (
@@ -61,6 +69,24 @@ const Create = () => {
         marginTop: '50px',
       }}
     >
+      {/* Loading spinner covering the page */}
+      {loading && (
+        <div
+          style={{
+            position: 'absolute',
+            top: 0,
+            left: 0,
+            width: '100%',
+            height: '100%',
+            display: 'flex',
+            justifyContent: 'center',
+            alignItems: 'center',
+            zIndex: 1000,
+          }}
+        >
+          <Spin size="large" />
+        </div>
+      )}
       {/* <form onSubmit={handleSubmit(handleMySubmit)}>
         <input type="text" {...register('name')} />
         <p>{errors.name?.message}</p>
@@ -83,7 +109,7 @@ const Create = () => {
                 control={control}
                 defaultValue=""
               />
-              <p>{errors.name?.message}</p>
+              <p style={{ color: 'red', fontWeight: '600' }}>{errors.name?.message}</p>
             </Form.Item>
           </Col>
 
@@ -95,6 +121,7 @@ const Create = () => {
                 control={control}
                 defaultValue=""
               />
+              <p style={{ color: 'red', fontWeight: '600' }}>{errors.slug?.message}</p>
             </Form.Item>
           </Col>
 

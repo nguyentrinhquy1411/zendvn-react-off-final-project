@@ -3,6 +3,7 @@ import { mappingPostData } from '../helpers/index.js';
 import categoryService from '../services/categoryService.js';
 import detailService from '../services/detailService.js';
 import postService from '../services/postService.js';
+import authService from '../services/authService.js';
 
 const initialState = {
   postLatest: [],
@@ -97,12 +98,9 @@ export const fetchPaging = createAsyncThunk('post/fetchPaging', async (params = 
     console.log('page', page);
 
     const res = await postService.getAll(params);
-    console.log(res);
 
     const total = parseInt(res.headers['x-wp-total']);
     const totalPages = parseInt(res.headers['x-wp-totalpages']);
-
-    console.log('totalPages', totalPages);
 
     const data = res.data.map(mappingPostData);
 
@@ -121,7 +119,6 @@ export const fetchAdminPaging = createAsyncThunk('post/fetchAdminPaging', async 
     const { page } = params;
 
     const res = await postService.getAll(params);
-    console.log(res);
 
     const total = parseInt(res.headers['x-wp-total']);
 
@@ -186,12 +183,10 @@ export const fetchAuthorRelated = createAsyncThunk('post/fetchAuthorRelated', as
 export const fetchByCategory = createAsyncThunk('post/fetchByCategory', async (params = {}, thunkAPI) => {
   try {
     const res = await categoryService.getCategoryIdBySlug(params);
-    console.log('res', res);
 
     const categoryId = res.data[0].id;
     const { currentPage } = params;
     const res1 = await postService.getByCategory({ categoryId, currentPage });
-    console.log('currentPage', currentPage);
 
     const totalpages = parseInt(res1.headers['x-wp-totalpages']);
     const total = parseInt(res1.headers['x-wp-total']);
@@ -237,23 +232,38 @@ export const fetchAll = createAsyncThunk('post/fetchAll', async (params, thunkAP
 });
 
 export const fetchAddPost = createAsyncThunk('post/fetchAddPost', async (data, thunkAPI) => {
+  const { rejectWithValue, dispatch } = thunkAPI;
+
   try {
+    console.log(data);
+
+    if (data.dataFile) {
+      const resMedia = await authService.uploadMeida(data.dataFile);
+      data.featured_media = resMedia.data.id;
+    }
+
     await postService.postPosts(data);
 
     return { status: true };
   } catch (err) {
-    console.log(err);
+    return rejectWithValue({ status: false });
   }
 });
 
 export const fetchEditPost = createAsyncThunk('category/fetchEditPost', async (data, thunkAPI) => {
+  const { rejectWithValue, dispatch } = thunkAPI;
+
   try {
+    console.log(data);
+
+    if (data.dataFile) {
+      const resMedia = await authService.uploadMeida(data.dataFile);
+      data.featured_media = resMedia.data.id;
+    }
     await postService.updatePost(data);
 
     return { status: true };
-  } catch (err) {
-    console.log(err);
-  }
+  } catch (err) {}
 });
 
 const slice = createSlice({

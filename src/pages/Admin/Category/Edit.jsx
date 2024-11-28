@@ -1,12 +1,12 @@
 import { yupResolver } from '@hookform/resolvers/yup';
-import { Button, Col, Form, Input, Row, Select } from 'antd';
-import React, { useEffect } from 'react';
+import { Button, Col, Form, Input, Row, Select, Spin } from 'antd';
+import React, { useEffect, useState } from 'react';
 import { Controller, useForm } from 'react-hook-form';
 import { useDispatch, useSelector } from 'react-redux';
 import { Link, useNavigate, useParams } from 'react-router-dom';
 import * as yup from 'yup';
 import { fetchCategoryById, fetchEditCategory } from '../../../store/categorySlice';
-import { successNotification } from '../../../helpers/notificantion';
+import { errorNotification, successNotification } from '../../../helpers/notificantion';
 
 const { Option } = Select;
 
@@ -24,8 +24,8 @@ function mappingDataList(item) {
 
 const schema = yup
   .object({
-    name: yup.string().required('bat buoc nhap'),
-    slug: yup.string(),
+    name: yup.string().required('Hãy nhập name'),
+    slug: yup.string().required('Hãy nhập slug'),
   })
   .required();
 
@@ -33,6 +33,8 @@ const Edit = () => {
   const categoriesList = useSelector((state) => state.CATEGORY.list);
   const dispatch = useDispatch();
   const editData = useSelector((state) => state.CATEGORY.selectedCategory);
+  const [loading, setLoading] = useState(false); // Loading state
+
   const {
     register,
     handleSubmit,
@@ -56,6 +58,7 @@ const Edit = () => {
   const parentOptions = categoriesList.map(mappingDataList);
   parentOptions.unshift({ value: '', label: 'None' });
   const handleMySubmit = async (data) => {
+    setLoading(true);
     const updatedData = {
       ...data,
       id: editData?.id, // include id from editData
@@ -64,8 +67,11 @@ const Edit = () => {
     const res = await dispatch(fetchEditCategory(updatedData));
 
     if (res.payload.status) {
+      setLoading(false);
       navigate('/admin/category');
       successNotification('Chỉnh sửa thành công!!');
+    } else {
+      errorNotification('Chỉnh sửa không thành công thất bại');
     }
   };
 
@@ -93,6 +99,24 @@ const Edit = () => {
         marginTop: '50px',
       }}
     >
+      {/* Loading spinner covering the page */}
+      {loading && (
+        <div
+          style={{
+            position: 'absolute',
+            top: 0,
+            left: 0,
+            width: '100%',
+            height: '100%',
+            display: 'flex',
+            justifyContent: 'center',
+            alignItems: 'center',
+            zIndex: 1000,
+          }}
+        >
+          <Spin size="large" />
+        </div>
+      )}
       {/* <form onSubmit={handleSubmit(handleMySubmit)}>
         <input type="text" {...register('name')} />
         <p>{errors.name?.message}</p>
@@ -123,7 +147,7 @@ const Edit = () => {
                 control={control}
                 defaultValue=""
               />
-              <p>{errors.name?.message}</p>
+              <p style={{ color: 'red', fontWeight: '600' }}>{errors.name?.message}</p>
             </Form.Item>
           </Col>
 
@@ -135,6 +159,7 @@ const Edit = () => {
                 control={control}
                 defaultValue=""
               />
+              <p style={{ color: 'red', fontWeight: '600' }}>{errors.slug?.message}</p>
             </Form.Item>
           </Col>
 

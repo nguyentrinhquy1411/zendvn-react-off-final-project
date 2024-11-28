@@ -26,7 +26,6 @@ export const addNewTag = createAsyncThunk('tags/addNewTag', async (params, thunk
 export const fetchTags = createAsyncThunk('category/fetchTags', async (params, thunkAPI) => {
   try {
     const res = await tagsService.getTags();
-    console.log('tags', res);
 
     const data = res.data.map(mappingTagsData);
 

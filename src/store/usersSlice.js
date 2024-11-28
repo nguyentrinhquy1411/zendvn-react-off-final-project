@@ -17,8 +17,6 @@ export const fetchUsers = createAsyncThunk('users/fetchUsers', async (params, th
   try {
     const res = await usersService.getUsers();
 
-    console.log(res);
-
     const data = res.data.map(mappingUsersData);
     return data;
   } catch (err) {
@@ -28,11 +26,7 @@ export const fetchUsers = createAsyncThunk('users/fetchUsers', async (params, th
 
 export const fetchUserById = createAsyncThunk('users/fetchUserById', async (params, thunkAPI) => {
   try {
-    console.log('worked');
-
     const res = await usersService.getUserById(params);
-
-    console.log(res);
 
     const data = mappingProfileData(res.data);
     return data;
@@ -55,8 +49,6 @@ export const addUser = createAsyncThunk('profile/addUser', async (data, thunkAPI
   const { rejectWithValue, dispatch } = thunkAPI;
 
   try {
-    console.log(data);
-
     if (data.dataFile) {
       const resMedia = await authService.uploadMeida(data.dataFile);
       data.simple_local_avatar = { media_id: resMedia.data.id };
@@ -74,14 +66,29 @@ export const updateUser = createAsyncThunk('profile/updateUser', async (data, th
   const { rejectWithValue, dispatch } = thunkAPI;
 
   try {
-    console.log(data);
-
     if (data.dataFile) {
       const resMedia = await authService.uploadMeida(data.dataFile);
       data.simple_local_avatar = { media_id: resMedia.data.id };
     }
 
     await usersService.updateUser(data);
+
+    return { status: true };
+  } catch (err) {
+    console.log(err);
+    return rejectWithValue({ status: false });
+  }
+});
+export const updateMyProFile = createAsyncThunk('profile/updateMyProfile', async (data, thunkAPI) => {
+  const { rejectWithValue, dispatch } = thunkAPI;
+
+  try {
+    if (data.dataFile) {
+      const resMedia = await authService.uploadMeida(data.dataFile);
+      data.simple_local_avatar = { media_id: resMedia.data.id };
+    }
+
+    await usersService.updateMyProFile(data);
 
     return { status: true };
   } catch (err) {

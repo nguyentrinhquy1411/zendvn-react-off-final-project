@@ -238,13 +238,11 @@ const Index = () => {
       key: 'action',
       render: (_, record) => (
         <Space size="middle">
-          <Button type="link" onClick={() => handleEdit(record.id)}>
+          <Button type="primary" onClick={() => handleEdit(record.id)}>
             <Link to={`/admin/profile/${record.id}/edit`}>Edit</Link>
           </Button>
           <Popconfirm title="Sure to delete?" onConfirm={() => handleDelete(record.id)}>
-            <Button type="link" danger>
-              Delete
-            </Button>
+            <Button danger>Delete</Button>
           </Popconfirm>
         </Space>
       ),

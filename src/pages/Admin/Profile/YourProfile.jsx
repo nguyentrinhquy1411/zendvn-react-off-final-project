@@ -1,16 +1,18 @@
 import { PlusOutlined } from '@ant-design/icons';
 import { yupResolver } from '@hookform/resolvers/yup';
-import { Button, Col, Image, Input, message, Row, Upload } from 'antd';
+import { Button, Col, Image, Input, message, Row, Spin, Upload } from 'antd';
 import React, { useEffect, useState } from 'react';
 import { Controller, useForm } from 'react-hook-form';
 import { useDispatch, useSelector } from 'react-redux';
 import * as yup from 'yup';
 import { fetchCurrentUser, fetchUpdateCurrentUser } from '../../../store/authSlice';
+import { updateMyProFile } from '../../../store/usersSlice';
+import { errorNotification } from '../../../helpers/notificantion';
 
 const schema = yup
   .object({
-    nickname: yup.string(),
-    email: yup.string().email('Invalid email').required('Email is required'),
+    username: yup.string().required('Hãy nhập tên đăng nhập'),
+    email: yup.string().email('Invalid email').required('Hãy nhập email'),
   })
   .required();
 
@@ -28,6 +30,7 @@ const YourProfile = () => {
   const [fileList, setFileList] = useState([]);
   const [previewImage, setPreviewImage] = useState('');
   const [previewOpen, setPreviewOpen] = useState(false);
+  const [loading, setLoading] = useState(false); // Loading state
 
   const {
     register,
@@ -46,8 +49,6 @@ const YourProfile = () => {
       avatar: null, // Default value for avatar file
     },
   });
-
-  console.log(editData);
 
   useEffect(() => {
     if (!editData) {
@@ -92,9 +93,9 @@ const YourProfile = () => {
   };
 
   const onSubmit = (data) => {
+    setLoading(true);
     // Handle the form submission including avatar
     // You can access the avatar with data.avatar (which would be the file object)
-    console.log(fileList);
 
     const avatarFile = fileList[0]?.originFileObj || null;
     const formData = { ...data, file: avatarFile };
@@ -103,8 +104,15 @@ const YourProfile = () => {
       dataFile.append('file', formData.file); // Attach the file if present
       formData.dataFile = dataFile;
     }
-    console.log(formData);
-    dispatch(fetchUpdateCurrentUser(formData));
+    dispatch(updateMyProFile(formData)).then((res) => {
+      setLoading(false);
+      if (res.payload.status) {
+        navigate('/admin/profile');
+        successNotification('Cập nhật thông tin thành công!!');
+      } else {
+        errorNotification('Cập nhật thất bại');
+      }
+    });
   };
 
   const uploadButton = (
@@ -136,6 +144,24 @@ const YourProfile = () => {
         marginBottom: '50px',
       }}
     >
+      {/* Loading spinner covering the page */}
+      {loading && (
+        <div
+          style={{
+            position: 'absolute',
+            top: 0,
+            left: 0,
+            width: '100%',
+            height: '100%',
+            display: 'flex',
+            justifyContent: 'center',
+            alignItems: 'center',
+            zIndex: 1000,
+          }}
+        >
+          <Spin size="large" />
+        </div>
+      )}
       {/* Avatar Section */}
       <Upload
         listType="picture-circle"
@@ -206,7 +232,9 @@ const YourProfile = () => {
                   />
                 )}
               />
-              <p className="error">{errors.nickname?.message}</p>
+              <p style={{ color: 'red', fontWeight: '600' }} className="error">
+                {errors.email?.message}
+              </p>
             </div>
           </Col>
           <Col span={12}>

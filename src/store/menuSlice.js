@@ -15,9 +15,7 @@ export const fetchMenu = createAsyncThunk('menu/fetchMenu', async (params, thunk
 
     const menus = data.map(mappingMenuData);
     return menus;
-  } catch (err) {
-    console.log(err);
-  }
+  } catch (err) {}
 });
 
 const slice = createSlice({

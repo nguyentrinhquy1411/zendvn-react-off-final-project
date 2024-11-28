@@ -1,5 +1,20 @@
 import React, { useEffect, useState } from 'react';
-import { Button, Card, Checkbox, Collapse, Form, Input, Radio, Select, Space, message } from 'antd';
+import {
+  Button,
+  Card,
+  Checkbox,
+  Collapse,
+  Form,
+  Input,
+  Radio,
+  Select,
+  Space,
+  Upload,
+  Image,
+  message,
+  Spin,
+} from 'antd';
+import { PlusOutlined } from '@ant-design/icons';
 import { Controller, useForm } from 'react-hook-form';
 import { yupResolver } from '@hookform/resolvers/yup';
 import { useDispatch, useSelector } from 'react-redux';
@@ -7,16 +22,32 @@ import { useNavigate } from 'react-router-dom';
 import * as yup from 'yup';
 import { CKEditor } from '@ckeditor/ckeditor5-react';
 import ClassicEditor from '@ckeditor/ckeditor5-build-classic';
-import { successNotification } from '../../../helpers/notificantion';
+import { errorNotification, successNotification } from '../../../helpers/notificantion';
 import { fetchCategories } from '../../../store/categorySlice';
 import { fetchAddPost } from '../../../store/postSlice';
 import { addNewTag, fetchTags } from '../../../store/TagsSlice';
 
-const schema = yup.object({}).required();
+const schema = yup
+  .object({
+    title: yup.string().required('Hãy nhập title').required(),
+  })
+  .required();
+
+const getBase64 = (file) =>
+  new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.readAsDataURL(file);
+    reader.onload = () => resolve(reader.result);
+    reader.onerror = (error) => reject(error);
+  });
 
 const Create = () => {
   const [newTag, setNewTag] = useState('');
   const [selectedTags, setSelectedTags] = useState([]);
+  const [fileList, setFileList] = useState([]);
+  const [previewImage, setPreviewImage] = useState('');
+  const [previewOpen, setPreviewOpen] = useState(false);
+  const [loading, setLoading] = useState(false); // Loading state
 
   const {
     register,
@@ -31,14 +62,39 @@ const Create = () => {
   const tags = useSelector((state) => state.TAGS.tags);
   const navigate = useNavigate();
 
+  console.log(fileList[0]?.originFileObj);
+
   const handleMySubmit = (data) => {
-    console.log('data submit', data);
-    dispatch(fetchAddPost(data)).then((res) => {
+    setLoading(true); // Set loading to true when the form is being submitted
+    const file = fileList[0]?.originFileObj || null;
+    const formData = { ...data, file };
+    if (formData.file) {
+      const dataFile = new FormData();
+      dataFile.append('file', formData.file); // Attach the file if present
+      formData.dataFile = dataFile;
+    }
+
+    dispatch(fetchAddPost(formData)).then((res) => {
+      setLoading(false); // Reset loading when submission is complete
       if (res.payload.status) {
         navigate('/admin/posts');
         successNotification('Thêm bài viết thành công!!');
+      } else {
+        errorNotification('Thêm mới thất bại');
       }
     });
+  };
+
+  const handlePreview = async (file) => {
+    try {
+      if (!file.url && !file.preview) {
+        file.preview = await getBase64(file.originFileObj);
+      }
+      setPreviewImage(file.url || file.preview);
+      setPreviewOpen(true);
+    } catch (error) {
+      message.error('Failed to preview image.');
+    }
   };
 
   const handleTagCreate = async () => {
@@ -77,13 +133,62 @@ const Create = () => {
     dispatch(fetchTags());
   }, [dispatch]);
 
+  const uploadButton = (
+    <div>
+      <PlusOutlined />
+      <div style={{ marginTop: 8 }}>Upload</div>
+    </div>
+  );
+
   return (
-    <div className="admin-page">
+    <div className="admin-page" style={{ position: 'relative' }}>
+      {/* Loading spinner covering the page */}
+      {loading && (
+        <div
+          style={{
+            position: 'absolute',
+            top: 0,
+            left: 0,
+            width: '100%',
+            height: '100%',
+            display: 'flex',
+            justifyContent: 'center',
+            alignItems: 'center',
+            zIndex: 1000,
+          }}
+        >
+          <Spin size="large" />
+        </div>
+      )}
+
       <Card title="Add New Blog Post">
         <Form layout="vertical" onFinish={handleSubmit(handleMySubmit)}>
+          <Form.Item label="Thumbnail">
+            <Upload
+              listType="picture-card"
+              fileList={fileList}
+              onPreview={handlePreview}
+              onChange={({ fileList: newFileList }) => setFileList(newFileList)}
+              beforeUpload={() => false}
+              maxCount={1}
+            >
+              {fileList.length < 1 && uploadButton}
+            </Upload>
+            {previewImage && (
+              <Image
+                preview={{
+                  visible: previewOpen,
+                  onVisibleChange: (visible) => setPreviewOpen(visible),
+                }}
+                src={previewImage}
+              />
+            )}
+          </Form.Item>
           <Form.Item label="Title">
             <Controller name="title" render={({ field }) => <Input {...field} />} control={control} defaultValue="" />
+            <p style={{ color: 'red', fontWeight: '600' }}>{errors.title?.message}</p>
           </Form.Item>
+
           <Form.Item label="Content">
             <Controller
               name="content"
@@ -101,7 +206,6 @@ const Create = () => {
               defaultValue=""
             />
           </Form.Item>
-
           <Collapse defaultActiveKey={['1']} style={{ marginBottom: '24px' }}>
             <Collapse.Panel header="Blog Categories" key="1">
               <Form.Item label="Categories">
@@ -121,7 +225,6 @@ const Create = () => {
                 />
               </Form.Item>
             </Collapse.Panel>
-
             <Collapse.Panel header="Blog Tags" key="2">
               <Form.Item label="Tags">
                 <Controller
@@ -135,7 +238,6 @@ const Create = () => {
                         setSelectedTags(value);
                         field.onChange(value);
                       }}
-                      onKeyDown={handleKeyDown}
                       value={selectedTags}
                       options={tags.map((tag) => ({
                         label: tag.name,
@@ -155,7 +257,6 @@ const Create = () => {
               </Space>
             </Collapse.Panel>
           </Collapse>
-
           <Form.Item label="Status">
             <Controller
               name="status"
@@ -170,7 +271,6 @@ const Create = () => {
               defaultValue="draft"
             />
           </Form.Item>
-
           <Form.Item>
             <Button type="primary" htmlType="submit">
               Add

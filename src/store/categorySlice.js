@@ -19,9 +19,7 @@ export const fetchAdminCategories = createAsyncThunk('category/fetchAdminCategor
     const total = parseInt(res.headers['x-wp-total']);
 
     return { list, total };
-  } catch (err) {
-    console.log(err);
-  }
+  } catch (err) {}
 });
 
 export const fetchCategoryById = createAsyncThunk('category/fetchCategoryById', async (params = {}, thunkAPI) => {
@@ -29,23 +27,17 @@ export const fetchCategoryById = createAsyncThunk('category/fetchCategoryById', 
     const res = await categoryService.getById(params);
     // const list = res.data.map(mappingCategoryData);
     // const total = parseInt(res.headers['x-wp-total']);
-    console.log('category selected data: ', res);
     return res.data;
-  } catch (err) {
-    console.log(err);
-  }
+  } catch (err) {}
 });
 
 export const fetchCategories = createAsyncThunk('category/fetchCategories', async (params = {}, thunkAPI) => {
   try {
     const res = await categoryService.getAll(params);
-    // console.log('category', res);
     const data = res.data.map(mappingCategoryData);
 
     return data;
-  } catch (err) {
-    console.log(err);
-  }
+  } catch (err) {}
 });
 
 export const fetchAddCategory = createAsyncThunk('category/fetchAddCategory', async (data, thunkAPI) => {
@@ -53,9 +45,7 @@ export const fetchAddCategory = createAsyncThunk('category/fetchAddCategory', as
     await categoryService.postCategory(data);
 
     return { status: true };
-  } catch (err) {
-    console.log(err);
-  }
+  } catch (err) {}
 });
 
 export const fetchEditCategory = createAsyncThunk('category/fetchEditCategory', async (data, thunkAPI) => {
@@ -63,9 +53,7 @@ export const fetchEditCategory = createAsyncThunk('category/fetchEditCategory', 
     await categoryService.updateCategory(data);
 
     return { status: true };
-  } catch (err) {
-    console.log(err);
-  }
+  } catch (err) {}
 });
 
 export const fetchDeleteCategory = createAsyncThunk('category/fetchDeleteCategory', async (id, thunkAPI) => {
@@ -73,9 +61,7 @@ export const fetchDeleteCategory = createAsyncThunk('category/fetchDeleteCategor
     await categoryService.deleteCategory(id);
 
     return { status: true };
-  } catch (err) {
-    console.log(err);
-  }
+  } catch (err) {}
 });
 
 const slice = createSlice({

@@ -5,9 +5,6 @@ import { fetchPaging } from '../store/postSlice';
 
 function usePostPaging(extraParams = {}) {
   const { list: posts, totalpages: totalPages, currentPage, total } = useSelector((state) => state.POST.postPaging);
-  console.log('usePostPaging - posts', posts);
-  console.log('usePostPaging - currentPage', currentPage);
-  console.log('usePostPaging - totalPages', totalPages);
 
   const [loading, setLoading] = useState(false);
   const dispatch = useDispatch();

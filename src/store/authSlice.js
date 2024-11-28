@@ -14,8 +14,6 @@ export const fetchUpdateCurrentUser = createAsyncThunk('profile/fetchUpdateCurre
   const { rejectWithValue, dispatch } = thunkAPI;
 
   try {
-    console.log(data);
-
     if (data.dataFile) {
       const resMedia = await authService.uploadMeida(data.dataFile);
       data.simple_local_avatar = { media_id: resMedia.data.id };
@@ -26,7 +24,6 @@ export const fetchUpdateCurrentUser = createAsyncThunk('profile/fetchUpdateCurre
 
     return { data: profile, status: true };
   } catch (err) {
-    console.log(err);
     return rejectWithValue({ status: false });
   }
 });
@@ -38,7 +35,6 @@ export const fetchChangePassword = createAsyncThunk('profile/fetchChangePassword
     await authService.changePassword(data);
     return { status: true };
   } catch (err) {
-    console.log(err);
     return rejectWithValue({ status: false });
   }
 });
@@ -78,12 +74,11 @@ export const fetchCurrentUser = createAsyncThunk('auth/fetchCurrentUser', async 
   const { rejectWithValue } = thunkAPI;
   try {
     const res = await authService.getInfo(token);
-    console.log('profile', res);
+    console.log(res);
 
     const data = mappingProfileData(res.data);
     return { data, status: true };
   } catch (err) {
-    console.log(err);
     return rejectWithValue({ status: false, errors });
   }
 });
@@ -111,7 +106,6 @@ const slice = createSlice({
         localStorage.setItem('ACCESS_TOKEN', token);
       })
       .addCase(fetchCurrentUser.fulfilled, (state, action) => {
-        // console.log(action.payload);
         state.currentUser = action.payload.data;
       })
       .addCase(fetchUpdateCurrentUser.fulfilled, (state, action) => {

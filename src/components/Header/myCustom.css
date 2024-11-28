@@ -10,3 +10,10 @@
     opacity: 1;
     pointer-events: auto;
 }
+
+.header-nav {
+    display: flex;
+    /* To spread out other items */
+    align-items: center;
+    /* Vertically center content */
+}

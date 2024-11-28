@@ -1,5 +1,5 @@
 import { yupResolver } from '@hookform/resolvers/yup';
-import { Button, Card, Checkbox, Collapse, Form, Input, Radio, Select, message } from 'antd';
+import { Button, Card, Checkbox, Collapse, Form, Input, Radio, Select, Upload, message, Image, Spin } from 'antd';
 import React, { useEffect, useState } from 'react';
 import { Controller, useForm } from 'react-hook-form';
 import { useDispatch, useSelector } from 'react-redux';
@@ -8,11 +8,16 @@ import * as yup from 'yup';
 import { fetchCategories } from '../../../store/categorySlice';
 import { fetchEditPost, fetchPostById } from '../../../store/postSlice';
 import { fetchTags } from '../../../store/TagsSlice';
-import { successNotification } from '../../../helpers/notificantion';
+import { errorNotification, successNotification } from '../../../helpers/notificantion';
 import { CKEditor } from '@ckeditor/ckeditor5-react';
 import ClassicEditor from '@ckeditor/ckeditor5-build-classic';
+import { PlusOutlined } from '@ant-design/icons';
 
-const schema = yup.object({}).required();
+const schema = yup
+  .object({
+    title: yup.string().required('Hãy nhập title').required(),
+  })
+  .required();
 
 const Edit = () => {
   const editData = useSelector((state) => state.POST.postSelected);
@@ -22,14 +27,17 @@ const Edit = () => {
   const navigate = useNavigate();
   const { id } = useParams();
 
-  const [selectedTags, setSelectedTags] = useState([]); // To track selected tags
+  const [fileList, setFileList] = useState([]);
+  const [previewImage, setPreviewImage] = useState('');
+  const [loading, setLoading] = useState(false); // Loading state
+  const [previewOpen, setPreviewOpen] = useState(false);
 
   const {
     register,
     handleSubmit,
     formState: { errors },
     control,
-    setValue, // Used to manually update form values
+    setValue,
   } = useForm({
     resolver: yupResolver(schema),
     defaultValues: {
@@ -42,16 +50,22 @@ const Edit = () => {
   });
 
   const handleMySubmit = async (data) => {
-    const updatedData = {
-      ...data,
-      id: editData?.id, // Include id from editData
-    };
-    console.log('Updated data with ID:', updatedData);
-    const res = await dispatch(fetchEditPost(updatedData));
+    setLoading(true);
+    const file = fileList[0]?.originFileObj || null;
+    const formData = { ...data, file, id: editData?.id };
+    if (formData.file) {
+      const dataFile = new FormData();
+      dataFile.append('file', formData.file); // Attach the file if present
+      formData.dataFile = dataFile;
+    }
+    const res = await dispatch(fetchEditPost(formData));
 
     if (res.payload.status) {
+      setLoading(false);
       navigate('/admin/posts');
       successNotification('Chỉnh sửa thành công!!');
+    } else {
+      errorNotification('Cập nhật thất bại');
     }
   };
 
@@ -63,7 +77,6 @@ const Edit = () => {
     dispatch(fetchTags());
   }, [dispatch, id]);
 
-  // Update form values when `editData` changes
   useEffect(() => {
     if (editData) {
       setValue('title', editData.title || '');
@@ -71,38 +84,62 @@ const Edit = () => {
       setValue('categories', editData.categoryIds || []);
       setValue('tags', editData.tagsIds || []);
       setValue('status', editData.status || 'draft');
+      if (editData.thumb) {
+        setFileList([
+          {
+            uid: '-1',
+            name: 'thumbnail.png',
+            status: 'done',
+            url: editData.thumb,
+          },
+        ]);
+      }
     }
   }, [editData, setValue]);
 
-  const handleTagCreate = async () => {
-    if (newTag.trim()) {
-      const tagExists = tags.some((tag) => tag.name.toLowerCase() === newTag.trim().toLowerCase());
-
-      if (tagExists) {
-        message.warning('This tag already exists.');
-        return;
+  const handlePreview = async (file) => {
+    try {
+      if (!file.url && !file.preview) {
+        file.preview = await getBase64(file.originFileObj);
       }
-
-      try {
-        const createdTag = await dispatch(addNewTag({ name: newTag.trim() })).unwrap();
-        setSelectedTags((prevTags) => [...prevTags, createdTag.id]);
-        dispatch(fetchTags());
-        setNewTag('');
-      } catch (error) {
-        console.error('Error creating tag:', error);
-      }
+      setPreviewImage(file.url || file.preview);
+      setPreviewOpen(true);
+    } catch (error) {
+      message.error('Failed to preview image.');
     }
   };
 
-  const handleKeyDown = (event) => {
-    if (event.key === 'Enter') {
-      event.preventDefault();
-      handleTagCreate();
-    }
+  const uploadButton = (
+    <div>
+      <PlusOutlined />
+      <div style={{ marginTop: 8 }}>Upload</div>
+    </div>
+  );
+
+  const handleCancelPreview = () => {
+    setPreviewOpen(false);
   };
 
   return (
     <div className="admin-page">
+      {/* Loading spinner covering the page */}
+      {loading && (
+        <div
+          style={{
+            position: 'absolute',
+            top: 0,
+            left: 0,
+            width: '100%',
+            height: '100%',
+            display: 'flex',
+            justifyContent: 'center',
+            alignItems: 'center',
+            zIndex: 1000,
+          }}
+        >
+          <Spin size="large" />
+        </div>
+      )}
       <Card>
         {editData?.title && (
           <h2 style={{ marginBottom: '50px' }}>
@@ -110,9 +147,37 @@ const Edit = () => {
           </h2>
         )}
         <Form layout="vertical" onFinish={handleSubmit(handleMySubmit)}>
-          <Form.Item label="Title">
-            <Controller name="title" render={({ field }) => <Input {...field} />} control={control} defaultValue="" />
+          <Form.Item label="Thumbnail">
+            <Upload
+              listType="picture-card"
+              fileList={fileList}
+              onPreview={handlePreview}
+              onChange={({ fileList: newFileList }) => setFileList(newFileList)}
+              beforeUpload={() => false} // Prevent auto upload
+              maxCount={1}
+            >
+              {fileList.length < 1 && uploadButton}
+            </Upload>
+            {previewImage && (
+              <Image
+                wrapperStyle={{
+                  display: 'none',
+                }}
+                preview={{
+                  visible: previewOpen,
+                  onVisibleChange: (visible) => setPreviewOpen(visible),
+                  onVisibleChange: handleCancelPreview,
+                }}
+                src={previewImage}
+              />
+            )}
           </Form.Item>
+
+          <Form.Item label="Title">
+            <Controller name="title" render={({ field }) => <Input {...field} />} control={control} />
+            <p style={{ color: 'red', fontWeight: '600' }}>{errors.title?.message}</p>
+          </Form.Item>
+
           <Form.Item label="Content">
             <Controller
               name="content"
@@ -161,16 +226,7 @@ const Edit = () => {
                       allowClear
                       placeholder="Enter or select tags"
                       style={{ width: '100%' }}
-                      onChange={(value) => {
-                        setSelectedTags(value);
-                        field.onChange(value);
-                      }}
                       value={field.value}
-                      options={tags.map((tag) => ({
-                        label: tag.name,
-                        value: tag.id,
-                      }))}
-                      onKeyDown={handleKeyDown}
                     />
                   )}
                   control={control}

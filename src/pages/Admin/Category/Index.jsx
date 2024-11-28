@@ -3,10 +3,9 @@ import { Button, Input, Popconfirm, Space, Table } from 'antd';
 import React, { useEffect, useRef, useState } from 'react';
 import Highlighter from 'react-highlight-words';
 import { useDispatch, useSelector } from 'react-redux';
-import { Link, useLocation, useNavigate } from 'react-router-dom';
-import { fetchAdminCategories, fetchDeleteCategory } from '../../../store/categorySlice';
-import qs from 'query-string';
+import { Link } from 'react-router-dom';
 import { successNotification } from '../../../helpers/notificantion';
+import { fetchAdminCategories, fetchCategories, fetchDeleteCategory } from '../../../store/categorySlice';
 
 const Index = () => {
   const [searchText, setSearchText] = useState('');
@@ -14,57 +13,53 @@ const Index = () => {
   const [loading, setLoading] = useState(false);
   const searchInput = useRef(null);
   const dispatch = useDispatch();
-  const navigate = useNavigate();
-  const location = useLocation();
 
-  console.log(location);
+  const rawData = useSelector((state) => state.CATEGORY.list);
 
-  const data = useSelector((state) => state.CATEGORY.adminList.list);
+  // Debug: Log raw data to check if it contains the expected data
+  console.log('rawData:', rawData);
 
-  // Parse query parameters from URL
-  const { page = 1, per_page = 3, search = '' } = qs.parse(location.search);
+  // Function to process data and add dashes for hierarchy visualization
+  const buildFlatDataWithDashes = (categories, parentId = 0, level = 0) => {
+    return categories
+      .filter((category) => category.parent === parentId) // Filter by parent ID
+      .flatMap((category) => {
+        // Add dashes to the category name
+        const updatedCategory = {
+          ...category,
+          name: `${'— '.repeat(level)}${category.name}`,
+        };
+        // Recursively process child categories
+        return [updatedCategory, ...buildFlatDataWithDashes(categories, category.id, level + 1)];
+      });
+  };
 
-  const [pagination, setPagination] = useState({
-    current: Number(page),
-    pageSize: Number(per_page),
-    total: 0,
-  });
+  const data = buildFlatDataWithDashes(rawData); // Processed data with dashes
+  console.log('Processed data:', data); // Debug: Log processed data
 
-  console.log('pagination', pagination);
-
+  // Fetch data from the server
   useEffect(() => {
     setLoading(true);
-    dispatch(
-      fetchAdminCategories({
-        page: pagination.current,
-        per_page: pagination.pageSize,
-        search: searchText || search,
+    dispatch(fetchCategories({}))
+      .then((res) => {
+        console.log('API Response Payload:', res.payload); // Debug: Check API response
+        setLoading(false);
       })
-    ).then((res) => {
-      setPagination({ ...pagination, total: res.payload?.total });
-      setLoading(false);
-    });
-  }, [pagination.current, pagination.pageSize, searchText, search]);
-
-  const updateURL = (params) => {
-    const updatedQuery = qs.stringify({ ...qs.parse(location.search), ...params });
-    navigate(`?${updatedQuery}`, { replace: true });
-  };
+      .catch((err) => {
+        console.error('Failed to fetch categories:', err);
+        setLoading(false);
+      });
+  }, [dispatch]);
 
   const handleSearch = (selectedKeys, confirm, dataIndex) => {
     confirm();
     setSearchText(selectedKeys[0]);
-
-    // Update URL and reset to the first page
-    updateURL({ search: selectedKeys[0], page: 1 });
+    setSearchedColumn(dataIndex);
   };
 
   const handleReset = (clearFilters) => {
     clearFilters();
     setSearchText('');
-
-    // Clear search query in the URL
-    updateURL({ search: '', page: 1 });
   };
 
   const getColumnSearchProps = (dataIndex) => ({
@@ -104,7 +99,6 @@ const Index = () => {
       </div>
     ),
     filterIcon: (filtered) => <SearchOutlined style={{ color: filtered ? '#1677ff' : undefined }} />,
-    // onFilter: (value, record) => record[dataIndex]?.toString().toLowerCase().includes(value.toLowerCase()),
     onFilterDropdownOpenChange: (visible) => {
       if (visible) {
         setTimeout(() => searchInput.current?.select(), 100);
@@ -124,32 +118,20 @@ const Index = () => {
   });
 
   const handleDelete = async (id) => {
-    setLoading(true); // Show loading while deleting
-    await dispatch(fetchDeleteCategory(id)).unwrap(); // Ensure action completes
-    // Fetch updated data to refresh the table
-    dispatch(
-      fetchAdminCategories({
-        page: pagination.current,
-        per_page: pagination.pageSize,
-        search: searchText || search,
-      })
-    ).then((res) => {
-      setPagination({ ...pagination, total: res.payload?.total - 1 });
-      setLoading(false); // Stop loading after fetching updated data
-      successNotification('Xóa thành công!!');
-    });
-  };
-
-  const handleTableChange = (newPagination) => {
     setLoading(true);
-    setPagination({
-      ...pagination,
-      current: newPagination.current,
-      pageSize: newPagination.pageSize,
-    });
-
-    // Update URL with new pagination
-    updateURL({ page: newPagination.current, per_page: newPagination.pageSize });
+    await dispatch(fetchDeleteCategory(id))
+      .unwrap()
+      .then(() => {
+        // Refresh data
+        dispatch(fetchAdminCategories({})).then(() => {
+          setLoading(false);
+          successNotification('Xóa thành công!!');
+        });
+      })
+      .catch((err) => {
+        console.error('Failed to delete category:', err);
+        setLoading(false);
+      });
   };
 
   const columns = [
@@ -171,13 +153,16 @@ const Index = () => {
       key: 'action',
       render: (_, record) => (
         <Space size="middle">
-          <Link to={`/admin/category/${record.id}/edit`}>
-            <Button type="link">Edit</Button>
+          <Link to={`/admin/categories/edit/${record.id}`}>
+            <Button type="primary">Edit</Button>
           </Link>
-          <Popconfirm title="Sure to delete?" onConfirm={() => handleDelete(record.id)}>
-            <Button type="link" danger>
-              Delete
-            </Button>
+          <Popconfirm
+            title="Are you sure to delete this category?"
+            onConfirm={() => handleDelete(record.id)}
+            okText="Yes"
+            cancelText="No"
+          >
+            <Button danger>Delete</Button>
           </Popconfirm>
         </Space>
       ),
@@ -185,16 +170,7 @@ const Index = () => {
   ];
 
   return (
-    <Table
-      columns={columns}
-      dataSource={data}
-      pagination={{
-        ...pagination,
-        disabled: loading,
-      }}
-      onChange={handleTableChange}
-      loading={loading}
-    />
+    <Table columns={columns} dataSource={data} pagination={false} loading={loading} rowKey={(record) => record.id} />
   );
 };
 

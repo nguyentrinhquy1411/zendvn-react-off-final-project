@@ -37,8 +37,8 @@ function ProfilePage(props) {
     if (currentProfile) {
       setFormData({
         nickname: currentProfile.nickname || '',
-        lastName: currentProfile.lastName || '',
-        firstName: currentProfile.firstName || '',
+        lastName: currentProfile.last_name || '',
+        firstName: currentProfile.first_name || '',
         description: currentProfile.description || '',
         avatar: currentProfile.file || '',
       });
@@ -56,8 +56,8 @@ function ProfilePage(props) {
 
   function mappingData(item) {
     return {
-      first_name: item.firstName,
-      last_name: item.lastName,
+      first_name: item.first_name,
+      last_name: item.last_name,
       nickname: item.nickname,
       description: item.description,
       file: item.file,

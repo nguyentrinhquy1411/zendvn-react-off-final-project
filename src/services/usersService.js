@@ -23,6 +23,9 @@ const usersService = {
   updateUser(data) {
     return API.callWithToken().put(`wp/v2/users/${data.id}`, data);
   },
+  updateMyProFile(data) {
+    return API.callWithToken().put(`wp/v2/users/me`, data);
+  },
   getUserById(data) {
     return API.callWithToken().get(`wp/v2/users/${data}`);
   },

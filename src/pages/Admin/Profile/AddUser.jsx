@@ -1,23 +1,19 @@
 import React, { useState } from 'react';
-import { Button, Col, Row, Upload, Image, message, Input } from 'antd';
+import { Button, Col, Row, Upload, Image, message, Input, Spin } from 'antd';
 import { PlusOutlined } from '@ant-design/icons';
 import { useForm, Controller } from 'react-hook-form';
 import { yupResolver } from '@hookform/resolvers/yup';
 import * as yup from 'yup';
 import { useDispatch } from 'react-redux';
 import { addUser } from '../../../store/usersSlice';
-import { successNotification } from '../../../helpers/notificantion';
+import { errorNotification, successNotification } from '../../../helpers/notificantion';
 import { useNavigate } from 'react-router-dom';
 
 // Validation schema using yup
 const schema = yup
   .object({
-    username: yup.string().required('Username is required'),
-    email: yup.string().email('Invalid email').required('Email is required'),
-    first_name: yup.string(),
-    last_name: yup.string(),
-    password: yup.string().required('Password is required'),
-    nickname: yup.string().required('Nickname is required'), // Added validation for nickname
+    username: yup.string().required('Hãy nhập tên đăng nhập'),
+    email: yup.string().email('Invalid email').required('Hãy nhập email'),
   })
   .required();
 
@@ -34,6 +30,7 @@ const AddUser = () => {
   const [fileList, setFileList] = useState([]);
   const [previewImage, setPreviewImage] = useState('');
   const [previewOpen, setPreviewOpen] = useState(false);
+  const [loading, setLoading] = useState(false); // Loading state
   const dispatch = useDispatch();
   const navigate = useNavigate();
 
@@ -56,6 +53,7 @@ const AddUser = () => {
 
   // Handle form submission
   const onSubmit = (data) => {
+    setLoading(true);
     const avatarFile = fileList[0].originFileObj || null;
     const formData = { ...data, file: avatarFile };
     if (formData.file) {
@@ -65,9 +63,12 @@ const AddUser = () => {
     }
     console.log('Submitted Data:', formData);
     dispatch(addUser(formData)).then((res) => {
+      setLoading(false);
       if (res.payload.status) {
         navigate('/admin/posts');
         successNotification('Thêm người dùng thành công!!');
+      } else {
+        errorNotification('Thêm mới thất bại');
       }
     });
   };
@@ -89,7 +90,6 @@ const AddUser = () => {
   const handleChange = ({ fileList: newFileList }) => {
     setFileList(newFileList);
   };
-  console.log('fileList', fileList);
 
   // Custom upload button
   const uploadButton = (
@@ -108,6 +108,24 @@ const AddUser = () => {
         marginTop: '50px',
       }}
     >
+      {/* Loading spinner covering the page */}
+      {loading && (
+        <div
+          style={{
+            position: 'absolute',
+            top: 0,
+            left: 0,
+            width: '100%',
+            height: '100%',
+            display: 'flex',
+            justifyContent: 'center',
+            alignItems: 'center',
+            zIndex: 1000,
+          }}
+        >
+          <Spin size="large" />
+        </div>
+      )}
       <form onSubmit={handleSubmit(onSubmit)} style={{ maxWidth: 800, width: '100%' }}>
         {/* Avatar Upload Section */}
         <Row justify="center" style={{ marginBottom: '30px' }}>
@@ -148,7 +166,10 @@ const AddUser = () => {
                 control={control}
                 render={({ field }) => <Input {...field} className={`input ${errors.name ? 'is-invalid' : ''}`} />}
               />
-              <p className="error">{errors.name?.message}</p>
+
+              <p style={{ color: 'red', fontWeight: '600' }} className="error">
+                {errors.username?.message}
+              </p>
             </div>
           </Col>
           <Col span={12}>
@@ -159,7 +180,9 @@ const AddUser = () => {
                 control={control}
                 render={({ field }) => <Input {...field} className={`input ${errors.email ? 'is-invalid' : ''}`} />}
               />
-              <p className="error">{errors.email?.message}</p>
+              <p style={{ color: 'red', fontWeight: '600' }} className="error">
+                {errors.email?.message}
+              </p>
             </div>
           </Col>
           <Col span={12}>

@@ -1,9 +1,12 @@
-import React, { useState } from 'react';
-import { BookOutlined, EditOutlined, PushpinOutlined, UserOutlined } from '@ant-design/icons';
-import { Layout, Menu, ConfigProvider, theme, Dropdown, Button } from 'antd'; // Correct import for 'theme'
-import { Link, Outlet, useLocation } from 'react-router-dom';
-import './index.css';
+import { BookOutlined, PushpinOutlined, UserOutlined } from '@ant-design/icons';
+import { ConfigProvider, Dropdown, Layout, Menu, theme } from 'antd'; // Correct import for 'theme'
+import React, { useEffect, useState } from 'react';
+import { useDispatch } from 'react-redux';
+import { Link, Outlet, useLocation, useNavigate } from 'react-router-dom';
+import { fetchCurrentUser } from '../../store/authSlice';
 import logo from './assets/logo.png'; // Import your logo
+import './index.css';
+import { infoNotification } from '../../helpers/notificantion';
 
 const { Header, Content, Footer, Sider } = Layout;
 
@@ -24,7 +27,7 @@ const items = [
   getItem(<Link>Profile</Link>, '/admin/profile', <UserOutlined />, [
     getItem(<Link to="/admin/profile/">All users</Link>, '/admin/profile/'),
     getItem(<Link to="/admin/profile/create">Add new user</Link>, '/admin/profile/create'),
-    getItem(<Link to="/admin/profile/me">Your profile</Link>, '/admin/profile/me'),
+    // getItem(<Link to="/admin/profile/me">Your profile</Link>, '/admin/profile/me'),
   ]),
   getItem(<Link>Posts</Link>, '/admin/posts', <BookOutlined />, [
     getItem(<Link to="/admin/posts/">All posts</Link>, '/admin/posts/'),
@@ -38,6 +41,8 @@ const AdminLayout = () => {
   const {
     token: { colorBgContainer },
   } = theme.useToken(); // Use the theme object
+  const dispatch = useDispatch();
+  const navigate = useNavigate();
 
   // Dropdown menu items
   const dropdownItems = (
@@ -50,6 +55,18 @@ const AdminLayout = () => {
       </Menu.Item>
     </Menu>
   );
+
+  useEffect(() => {
+    dispatch(fetchCurrentUser()).then((res) => {
+      console.log(res);
+
+      if (res.payload?.status !== true) {
+        navigate('/error'); // Redirect if already authenticated
+      } else {
+        infoNotification('Xin chào bạn đã quay trở lại!!');
+      }
+    });
+  }, [dispatch]); // Add dependencies
 
   return (
     <ConfigProvider
