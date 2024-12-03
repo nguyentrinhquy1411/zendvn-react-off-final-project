@@ -12,11 +12,6 @@ function Footer() {
                 <img src="/assets/images/logo.png" alt="NuxtBlog Logo" />
               </div>
               <p>© 2024, All Rights Reserved.</p>
-              <p>
-                <a href="https://zendvn.com/" target="_blank" rel="noreferrer">
-                  ZendVN
-                </a>
-              </p>
             </div>
             {/* Footer Column */}
             <div className="tcl-col-12 tcl-col-sm-6 tcl-col-md-4 tcl-col-lg-2">
@@ -44,8 +39,7 @@ function Footer() {
                 <p>Contacts</p>
               </div>
               <ul className="footer-content__list">
-                <li>Số 01, Khối A1, Toà nhà Đạt Gia, 43 Đường Cây Keo, Tam Phú, Thủ Đức, Hồ Chí Minh</li>
-                <li> 0383 308 983</li>
+                <li> +093 127 0564</li>
               </ul>
             </div>
             {/* Footer Column */}
@@ -56,7 +50,7 @@ function Footer() {
               <div className="footer-facebook">
                 <div
                   className="fb-page"
-                  data-href="https://www.facebook.com/ZendVNHoChiMinh"
+                  data-href="https://github.com/nguyentrinhquy1411"
                   data-tabs
                   data-width
                   data-height
@@ -65,8 +59,8 @@ function Footer() {
                   data-hide-cover="false"
                   data-show-facepile="true"
                 >
-                  <blockquote cite="https://www.facebook.com/ZendVNHoChiMinh" className="fb-xfbml-parse-ignore">
-                    <a href="https://www.facebook.com/ZendVNHoChiMinh">Học Lập Trình Web Thông Qua Projects Thực Tế</a>
+                  <blockquote cite="https://github.com/nguyentrinhquy1411" className="fb-xfbml-parse-ignore">
+                    <a href="https://github.com/nguyentrinhquy1411">My github</a>
                   </blockquote>
                 </div>
               </div>

@@ -1,10 +1,13 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import Input from '../shared/Input';
+import { useTranslation } from 'react-i18next';
 
 function HeaderSearch() {
   const navigate = useNavigate();
   const [queryStr, setQueryStr] = useState('');
+
+  const { t } = useTranslation();
 
   function handleOnChange(evt) {
     setQueryStr(evt.target.value);
@@ -26,7 +29,7 @@ function HeaderSearch() {
     <div className="tcl-col-4">
       {/* Header Search */}
       <form onSubmit={handleSubmit}>
-        <Input type="search" placeholder="Nhap gia tri search ..." value={queryStr} onChange={handleOnChange} />
+        <Input type="search" placeholder={t('searchInput')} value={queryStr} onChange={handleOnChange} />
       </form>
     </div>
   );

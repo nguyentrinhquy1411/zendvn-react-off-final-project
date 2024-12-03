@@ -6,6 +6,7 @@ import Button from '../components/shared/Button';
 import MainTitle from '../components/shared/MainTitle';
 import { fetchPaging } from '../store/postSlice';
 import usePostPaging from '../hooks/usePostPaging';
+import { useTranslation } from 'react-i18next';
 
 function SearchPage() {
   // lay duoc gia tri search 'q' tren url
@@ -13,19 +14,20 @@ function SearchPage() {
   const search = searchParams.get('q');
   const extraParams = { per_page: 1, search };
   const { posts, renderButtonLoadMore, total } = usePostPaging(extraParams);
+  const lang = useSelector((state) => state.POST.lang);
+
   const dispatch = useDispatch();
+  const { t } = useTranslation();
 
   // useEffect -> kich hoat action lay bai viet theo tu khoa
   useEffect(() => {
-    dispatch(fetchPaging({ page: 1, ...extraParams }));
+    dispatch(fetchPaging({ page: 1, ...extraParams, lang }));
   }, [search]);
 
   return (
     <div className="articles-list section">
       <div className="tcl-container">
-        <MainTitle type="search">
-          {total} kết quả tìm kiếm với từ khóa "{search}"
-        </MainTitle>
+        <MainTitle type="search">{t('searchResults', { total, search })}</MainTitle>
 
         <div className="tcl-row tcl-jc-center">
           {posts.map((item, idx) => (

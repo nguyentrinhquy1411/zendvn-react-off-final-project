@@ -3,10 +3,15 @@
   "homePage": "Trang Chủ",
   "newPosts": "Bài viết mới",
   "popularPosts": "Bài viết phổ biến",
-  "GeneralPosts": "Bài viết tổng hợp",
+  "generalPosts": "Bài viết tổng hợp",
   "loadMore": "Tải thêm",
   "watchMore": "Xem thêm",
   "account": "Tài khoản",
   "notiLogin": "Vui lòng đăng nhập để bình luận!!",
-  "logout": "Đăng xuất"
+  "logout": "Đăng xuất",
+  "loginPrompt": "Vui lòng <1>đăng nhập</1> để bình luận!!",
+  "searchResults": "{{total}} kết quả tìm kiếm với từ khóa \"{{search}}\"",
+  "loadMoreComments": "Xem thêm {{commentRemain}} bình luận",
+  "loadMoreReplies": "Xem thêm {{comments}} câu trả lời",
+  "categoryWithPosts": "Category: {{slug}}, có {{total}} bài viết"
 }

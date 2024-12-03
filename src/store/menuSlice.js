@@ -9,7 +9,7 @@ const initialState = {
 
 export const fetchMenu = createAsyncThunk('menu/fetchMenu', async (params, thunkAPI) => {
   try {
-    const res = await menuService.getMenu();
+    const res = await menuService.getMenu(params);
 
     const data = res.data.items;
 

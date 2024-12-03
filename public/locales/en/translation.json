@@ -1,0 +1,17 @@
+{
+  "searchInput": "Enter your keywords...",
+  "homePage": "Home Page",
+  "newPosts": "Recent posts",
+  "popularPosts": "Popular posts",
+  "generalPosts": "General posts",
+  "loadMore": "Load more",
+  "watchMore": "More",
+  "account": "Account",
+  "notiLogin": "Please login to comment!!",
+  "logout": "Logout",
+  "loginPrompt": "Please <1>log in</1> to comment!!",
+  "searchResults": "{{total}} search results for the keyword \"{{search}}\"",
+  "loadMoreComments": "Load more {{commentRemain}} comments",
+  "loadMoreReplies": "Load more {{comments}} replies",
+  "categoryWithPosts": "Category: {{slug}}, with {{total}} posts"
+}

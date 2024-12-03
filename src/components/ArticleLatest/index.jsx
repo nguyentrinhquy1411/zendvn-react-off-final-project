@@ -4,21 +4,23 @@ import { fetchLatest } from '../../store/postSlice';
 import ArticleItem from '../ArticleItem';
 import MainTitle from '../shared/MainTitle';
 import './latest-news-list.css';
+import { useTranslation } from 'react-i18next';
 
 function ArticleLatest() {
   // dung useSelector lay du lieu tu store
   const posts = useSelector((state) => state.POST.postLatest);
+  const lang = useSelector((state) => state.POST.lang);
   const dispatch = useDispatch();
-  console.log(posts);
+  const { t } = useTranslation();
 
   useEffect(() => {
-    dispatch(fetchLatest());
-  }, []);
+    dispatch(fetchLatest({ lang }));
+  }, [lang]);
 
   return (
     <div className="latest-news section">
       <div className="tcl-container">
-        <MainTitle>Bài viết mới</MainTitle>
+        <MainTitle>{t('newPosts')}</MainTitle>
         <div className="latest-news__list spacing">
           {posts.map((item, index) => (
             <div className="latest-news__card" key={index}>

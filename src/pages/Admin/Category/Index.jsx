@@ -17,7 +17,6 @@ const Index = () => {
   const rawData = useSelector((state) => state.CATEGORY.list);
 
   // Debug: Log raw data to check if it contains the expected data
-  console.log('rawData:', rawData);
 
   // Function to process data and add dashes for hierarchy visualization
   const buildFlatDataWithDashes = (categories, parentId = 0, level = 0) => {
@@ -35,18 +34,15 @@ const Index = () => {
   };
 
   const data = buildFlatDataWithDashes(rawData); // Processed data with dashes
-  console.log('Processed data:', data); // Debug: Log processed data
 
   // Fetch data from the server
   useEffect(() => {
     setLoading(true);
     dispatch(fetchCategories({}))
       .then((res) => {
-        console.log('API Response Payload:', res.payload); // Debug: Check API response
         setLoading(false);
       })
       .catch((err) => {
-        console.error('Failed to fetch categories:', err);
         setLoading(false);
       });
   }, [dispatch]);
@@ -153,7 +149,7 @@ const Index = () => {
       key: 'action',
       render: (_, record) => (
         <Space size="middle">
-          <Link to={`/admin/categories/edit/${record.id}`}>
+          <Link to={`/admin/category/${record.id}/edit`}>
             <Button type="primary">Edit</Button>
           </Link>
           <Popconfirm

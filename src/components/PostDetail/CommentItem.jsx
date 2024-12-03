@@ -5,6 +5,7 @@ import dayjs from 'dayjs';
 import 'dayjs/locale/vi';
 import relativeTime from 'dayjs/plugin/relativeTime';
 import CommentForm from './Comment/CommentForm';
+import { Trans, useTranslation } from 'react-i18next';
 
 // Extend with relativeTime plugin first
 dayjs.extend(relativeTime);
@@ -13,6 +14,7 @@ dayjs.extend(relativeTime);
 dayjs.locale('vi');
 
 function CommentItem({ item, author, id }) {
+  const { t } = useTranslation();
   const { publishDate, authorNickname, content, replyCount, idComment, authorThumb } = item;
   console.log(authorThumb);
   console.log(item);
@@ -83,7 +85,8 @@ function CommentItem({ item, author, id }) {
       {isShowLoadMore && (
         <div className="comments__hidden">
           <a href="#" onClick={handleLoadChildComments}>
-            <i className="icons ion-ios-undo" /> Xem thêm {comments} câu trả lời
+            <i className="icons ion-ios-undo" />{' '}
+            <Trans i18nKey="loadMoreReplies">Xem thêm {{ comments }} câu trả lời</Trans>
           </a>
         </div>
       )}

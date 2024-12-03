@@ -5,6 +5,7 @@ import MainTitle from '../components/shared/MainTitle';
 import { fetchByCategory } from '../store/postSlice';
 import { useEffect, useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
+import { useTranslation } from 'react-i18next';
 
 function CategoryPage() {
   const {
@@ -13,14 +14,16 @@ function CategoryPage() {
     currentPage,
     total,
   } = useSelector((state) => state.POST.postsByCategory);
+  const lang = useSelector((state) => state.POST.lang);
   const [loading, setLoading] = useState(false);
   const { slug } = useParams();
   const dispatch = useDispatch();
+  const { t } = useTranslation();
 
   const isShowLoadMore = currentPage < totalPages;
 
   useEffect(() => {
-    dispatch(fetchByCategory({ currentPage: 1, slug })).then((res) => {
+    dispatch(fetchByCategory({ currentPage: 1, slug, lang })).then((res) => {
       setLoading(false);
     });
   }, [slug]);
@@ -35,9 +38,7 @@ function CategoryPage() {
   return (
     <div className="articles-list section">
       <div className="tcl-container">
-        <MainTitle>
-          Category: {slug}, có {total} bài viết
-        </MainTitle>
+        <MainTitle>{t('categoryWithPosts', { slug, total })}</MainTitle>
 
         <div className="tcl-row tcl-jc-center">
           {posts.map((item, idx) => (

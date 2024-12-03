@@ -66,7 +66,7 @@ export const fetchComments = createAsyncThunk('detail/fetchComments', async (par
 
     const data = res.data.map(mappingCommentData);
 
-    return { list: data, totalpages, commentRemain, currentPage: params.currentPage };
+    return { list: data, totalpages, commentRemain, currentPage: params.currentPage, total };
   } catch (err) {}
 });
 

@@ -6,6 +6,7 @@ import './comments.css';
 import './my-custom.css';
 import { Link } from 'react-router-dom';
 import CommentForm from './Comment/CommentForm';
+import { Trans, useTranslation } from 'react-i18next';
 
 function PostDetailComments({ id }) {
   const dispatch = useDispatch();
@@ -14,9 +15,11 @@ function PostDetailComments({ id }) {
     commentRemain,
     totalpages: totalPages,
     currentPage,
+    total,
   } = useSelector((state) => state.COMMENT.postComments);
   const currentUser = useSelector((state) => state.AUTH.currentUser);
   const isShowLoadMore = commentRemain > 0;
+  const { t } = useTranslation();
 
   useEffect(() => {
     dispatch(fetchComments({ currentPage: 1, articleId: id }));
@@ -33,10 +36,11 @@ function PostDetailComments({ id }) {
         <CommentForm id={id} author={currentUser} />
       ) : (
         <p>
-          Vui lòng <Link to={'/login'}>đăng nhập</Link> để bình luận!!
+          <Trans i18nKey="loginPrompt">
+            Vui lòng <Link to="/login">đăng nhập</Link> để bình luận!!
+          </Trans>
         </p>
       )}
-      <p>20 Comments</p>
       <ul className="comments">
         {/* Comment 3 */}
         {data.map((item, idx) => {
@@ -46,7 +50,7 @@ function PostDetailComments({ id }) {
       {isShowLoadMore && (
         <div className="comments__hidden parent">
           <a href="#" onClick={handleLoadMore}>
-            <i className="icons ion-ios-undo" /> Xem thêm {commentRemain} binh luan
+            <i className="icons ion-ios-undo" /> {t('loadMoreComments', { commentRemain })}
           </a>
         </div>
       )}

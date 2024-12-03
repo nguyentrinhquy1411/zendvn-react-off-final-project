@@ -1,8 +1,8 @@
 import API from './api';
 
 const menuService = {
-  getMenu() {
-    return API.call().get('menus/v1/menus/main-menu-vi');
+  getMenu(params) {
+    return API.call().get(`menus/v1/menus/main-menu-${params.lang}`);
   },
 };
 

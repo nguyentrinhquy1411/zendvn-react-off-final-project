@@ -7,11 +7,11 @@ import { useDispatch, useSelector } from 'react-redux';
 import * as yup from 'yup';
 import { fetchCurrentUser, fetchUpdateCurrentUser } from '../../../store/authSlice';
 import { updateMyProFile } from '../../../store/usersSlice';
-import { errorNotification } from '../../../helpers/notificantion';
+import { errorNotification, successNotification } from '../../../helpers/notificantion';
 
 const schema = yup
   .object({
-    username: yup.string().required('Hãy nhập tên đăng nhập'),
+    // username: yup.string().required('Hãy nhập tên đăng nhập'),
     email: yup.string().email('Invalid email').required('Hãy nhập email'),
   })
   .required();
@@ -98,7 +98,10 @@ const YourProfile = () => {
     // You can access the avatar with data.avatar (which would be the file object)
 
     const avatarFile = fileList[0]?.originFileObj || null;
-    const formData = { ...data, file: avatarFile };
+    const updatedData = { ...data, file: avatarFile };
+    const formData = Object.fromEntries(Object.entries(updatedData).filter(([key]) => key !== 'email'));
+    console.log(formData);
+
     if (formData.file) {
       const dataFile = new FormData();
       dataFile.append('file', formData.file); // Attach the file if present
@@ -107,7 +110,6 @@ const YourProfile = () => {
     dispatch(updateMyProFile(formData)).then((res) => {
       setLoading(false);
       if (res.payload.status) {
-        navigate('/admin/profile');
         successNotification('Cập nhật thông tin thành công!!');
       } else {
         errorNotification('Cập nhật thất bại');
@@ -244,6 +246,7 @@ const YourProfile = () => {
                 name="email"
                 control={control}
                 render={({ field }) => <Input {...field} className={`input ${errors.email ? 'is-invalid' : ''}`} />}
+                disabled={true}
               />
               <p className="error">{errors.email?.message}</p>
             </div>

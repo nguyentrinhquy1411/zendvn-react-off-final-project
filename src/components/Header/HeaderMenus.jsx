@@ -2,16 +2,18 @@ import { Switch, Tooltip } from 'antd';
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useDispatch, useSelector } from 'react-redux';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, useNavigate, useLocation } from 'react-router-dom'; // Import useLocation
 import { successNotification } from '../../helpers/notificantion';
 import { actLogout } from '../../store/authSlice';
+import { actUpdateLang } from '../../store/postSlice';
 
 function HeaderMenus() {
   const data = useSelector((state) => state.MENU.menu);
   const token = useSelector((state) => state.AUTH.token);
   const user = useSelector((state) => state.AUTH.currentUser);
-  const [language, setLanguage] = useState('en'); // Default language is English
+  const [language, setLanguage] = useState('vi'); // Default language is Vietnamese
   const navigate = useNavigate();
+  const location = useLocation(); // Get the current URL
   const dispatch = useDispatch();
 
   const { t, i18n } = useTranslation();
@@ -38,75 +40,19 @@ function HeaderMenus() {
     const newLanguage = checked ? 'vi' : 'en';
     setLanguage(newLanguage);
     i18n.changeLanguage(newLanguage); // Dynamically change language
+    dispatch(actUpdateLang(newLanguage));
   };
 
   const styles = {
-    container: {
-      display: 'flex',
-      alignItems: 'center',
-      justifyContent: 'center',
-      padding: '20px',
-    },
     switch: {
       backgroundColor: '#5A67D8', // Optional: Customize the switch color
-    },
-    icon: {
-      width: '20px',
-      height: '15px',
-      borderRadius: '4px',
     },
   };
 
   return (
     <div className="tcl-col-6">
-      {/* Nav */}
-
       <div className="header-nav">
-        <ul className="header-nav__lists">
-          {renderMenus(data)}
-          {/* <li>
-            <a href="/">Home</a>
-          </li>
-          <li>
-            <a href="/">Our Team</a>
-            <ul>
-              <li>
-                <a href="/">Our Team 1</a>
-              </li>
-              <li>
-                <a href="/">Our Team 2</a>
-              </li>
-              <li>
-                <a href="/">Our Team 3</a>
-              </li>
-            </ul>
-          </li>
-          <li>
-            <a href="/">Contact</a>
-            <ul>
-              <li>
-                <a href="/">Contact 1</a>
-              </li>
-              <li>
-                <a href="/">Contact 2</a>
-              </li>
-              <li>
-                <a href="/">Contact 3</a>
-                <ul>
-                  <li>
-                    <a href="/">Contact 11</a>
-                  </li>
-                  <li>
-                    <a href="/">Contact 12</a>
-                  </li>
-                  <li>
-                    <a href="/">Contact 13</a>
-                  </li>
-                </ul>
-              </li>
-            </ul>
-          </li> */}
-        </ul>
+        <ul className="header-nav__lists">{renderMenus(data)}</ul>
         <ul className="header-nav__lists">
           {token && (
             <li>
@@ -135,20 +81,24 @@ function HeaderMenus() {
           {!token && (
             <li>
               <Link to="/login">
-                <i className="icons ion-person" /> Tài khoản
+                <i className="icons ion-person" /> {t('account')}
               </Link>
             </li>
           )}
         </ul>
-        <Tooltip title={language === 'en' ? 'Switch to Vietnamese' : 'Switch to English'}>
-          <Switch
-            checked={language === 'vi'}
-            onChange={handleChange}
-            checkedChildren="VIE" // Text for Vietnamese
-            unCheckedChildren="ENG" // Text for English
-            style={styles.switch}
-          />
-        </Tooltip>
+
+        {/* Conditionally render the VIE/ENG switch if URL is '/' */}
+        {location.pathname === '/' && (
+          <Tooltip title={language === 'en' ? 'Switch to Vietnamese' : 'Switch to English'}>
+            <Switch
+              checked={language === 'vi'}
+              onChange={handleChange}
+              checkedChildren="VIE" // Text for Vietnamese
+              unCheckedChildren="ENG" // Text for English
+              style={styles.switch}
+            />
+          </Tooltip>
+        )}
       </div>
     </div>
   );

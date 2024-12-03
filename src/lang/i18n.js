@@ -21,6 +21,7 @@ i18n
       order: ['querystring', 'cookie', 'localStorage', 'navigator', 'htmlTag', 'path', 'subdomain'],
       caches: ['localStorage', 'cookie'], // Cache language settings
     },
+    lng: 'vi',
   });
 
 export default i18n;

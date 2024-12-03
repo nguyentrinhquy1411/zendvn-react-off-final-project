@@ -36,11 +36,12 @@ const initialState = {
   postDetail: null,
   allPosts: [],
   postSelected: {},
+  lang: 'vi',
 };
 
 export const fetchLatest = createAsyncThunk('post/fetchLatest', async (params, thunkAPI) => {
   try {
-    const res = await postService.getLatest();
+    const res = await postService.getLatest(params);
 
     // mapping: đặt lại tên, lọc lấy những field thực sự cần
     const data = res.data.map(mappingPostData);
@@ -158,7 +159,7 @@ export const deletetPost = createAsyncThunk('users/deletetPost', async (id, thun
 
 export const fetchPopular = createAsyncThunk('post/fetchPopular', async (params, thunkAPI) => {
   try {
-    const res = await postService.getPopular();
+    const res = await postService.getPopular(params);
 
     const data = res.data.map(mappingPostData);
 
@@ -276,6 +277,11 @@ const slice = createSlice({
     actResetPostSearch(state, action) {
       state.postSearch.list = [];
     },
+    actUpdateLang(state, action) {
+      console.log(action.payload);
+
+      state.lang = action.payload;
+    },
   },
   extraReducers: (builder) => {
     builder
@@ -348,6 +354,7 @@ export const {
   actResetPostSearch,
   actResetPostComment,
   actSavePostInfo,
+  actUpdateLang,
 } = actions;
 
 export default reducer;

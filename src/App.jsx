@@ -3,7 +3,7 @@ import Footer from './components/Footer';
 import Header from './components/Header';
 
 import { useEffect } from 'react';
-import { useDispatch } from 'react-redux';
+import { useDispatch, useSelector } from 'react-redux';
 import AdminLayout from './pages/Admin/Index';
 import AdminCategoryList from './pages/Admin/Category/Index';
 import AdminCategoryCreate from './pages/Admin/Category/Create';
@@ -31,12 +31,13 @@ import { fetchMenu } from './store/menuSlice';
 
 function App() {
   const dispatch = useDispatch();
+  const lang = useSelector((state) => state.POST.lang);
 
   useEffect(() => {
-    dispatch(fetchCategories());
-    dispatch(fetchMenu());
+    dispatch(fetchCategories({ lang }));
+    dispatch(fetchMenu({ lang }));
     dispatch(fetchCurrentUser());
-  }, []);
+  }, [lang]);
   let location = useLocation();
 
   const isGuestLayout = !location.pathname.includes('admin');

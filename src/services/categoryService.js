@@ -6,13 +6,13 @@ const categoryService = {
       params: {
         per_page: 100,
         page: 1,
-        lang: 'vi',
+        lang: inputParams.lang,
         ...inputParams,
       },
     });
   },
   getCategoryIdBySlug(params = {}) {
-    return API.call().get(`wp/v2/categories?slug=${params.slug}&lang=vi`);
+    return API.call().get(`wp/v2/categories?slug=${params.slug}&lang=${params.lang}`);
   },
   postCategory(data) {
     return (

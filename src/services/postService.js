@@ -6,22 +6,21 @@ const postService = {
       params: {
         per_page: 3,
         page: 1,
-        lang: 'vi',
         ...inputParams,
       },
     });
   },
   getGeneral(params = {}) {
-    return this.getAll({ per_page: 2, page: params.currentPage });
+    return this.getAll({ per_page: 2, page: params.currentPage, lang: params.lang });
   },
-  getLatest() {
-    return this.getAll();
+  getLatest(params) {
+    return this.getAll({ lang: params.lang });
   },
   getSearch(params = {}) {
     return this.getAll({ per_page: 1, page: params.currentPage, search: params.queryStr });
   },
-  getPopular() {
-    return this.getAll({ orderby: 'post_views' });
+  getPopular(params) {
+    return this.getAll({ orderby: 'post_views', lang: params.lang });
   },
   getByCategory(params = {}) {
     return this.getAll({ categories: params.categoryId, per_page: 2, page: params.currentPage });

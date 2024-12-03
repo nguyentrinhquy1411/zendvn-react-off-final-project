@@ -49,15 +49,15 @@ const Create = () => {
   const handleMySubmit = (data) => {
     setLoading(true);
     console.log(data);
-    // dispatch(fetchAddCategory(data)).then((res) => {
-    //   setLoading(false);
-    //   if (res.payload.status) {
-    //     navigate('/admin/category/');
-    //     successNotification('Thêm thành công!!');
-    //   } else {
-    //     errorNotification('Thêm mới thất bại');
-    //   }
-    // });
+    dispatch(fetchAddCategory(data)).then((res) => {
+      setLoading(false);
+      if (res.payload.status) {
+        navigate('/admin/category/');
+        successNotification('Thêm thành công!!');
+      } else {
+        errorNotification('Thêm mới thất bại');
+      }
+    });
   };
 
   return (
