@@ -100,7 +100,6 @@ const YourProfile = () => {
     const avatarFile = fileList[0]?.originFileObj || null;
     const updatedData = { ...data, file: avatarFile };
     const formData = Object.fromEntries(Object.entries(updatedData).filter(([key]) => key !== 'email'));
-    console.log(formData);
 
     if (formData.file) {
       const dataFile = new FormData();

@@ -51,9 +51,6 @@ const Edit = () => {
   });
   const navigate = useNavigate();
   const { id } = useParams(); // Extracted 'id' from the route
-  console.log(id); // Outputs: 9
-
-  console.log(editData);
 
   const parentOptions = categoriesList.map(mappingDataList);
   parentOptions.unshift({ value: '', label: 'None' });
@@ -63,7 +60,6 @@ const Edit = () => {
       ...data,
       id: editData?.id, // include id from editData
     };
-    console.log('Updated data with ID:', updatedData);
     const res = await dispatch(fetchEditCategory(updatedData));
 
     if (res.payload.status) {

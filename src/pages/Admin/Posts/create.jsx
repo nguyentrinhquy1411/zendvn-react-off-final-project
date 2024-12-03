@@ -62,8 +62,6 @@ const Create = () => {
   const tags = useSelector((state) => state.TAGS.tags);
   const navigate = useNavigate();
 
-  console.log(fileList[0]?.originFileObj);
-
   const handleMySubmit = (data) => {
     setLoading(true); // Set loading to true when the form is being submitted
     const file = fileList[0]?.originFileObj || null;

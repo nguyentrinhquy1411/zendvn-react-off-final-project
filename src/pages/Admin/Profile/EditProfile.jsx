@@ -51,9 +51,6 @@ const EditProfile = () => {
   });
   const { id } = useParams();
 
-  console.log('editData', editData);
-  console.log('id', editData);
-
   useEffect(() => {
     if (id) {
       dispatch(fetchUserById(id));
@@ -102,7 +99,6 @@ const EditProfile = () => {
     setLoading(true);
     // Handle the form submission including avatar
     // You can access the avatar with data.avatar (which would be the file object)
-    console.log(fileList);
 
     const avatarFile = fileList[0]?.originFileObj || null;
     const formData = { ...data, file: avatarFile, id };
@@ -111,7 +107,6 @@ const EditProfile = () => {
       dataFile.append('file', formData.file); // Attach the file if present
       formData.dataFile = dataFile;
     }
-    console.log(formData);
     dispatch(updateUser(formData)).then((res) => {
       setLoading(false);
       if (res.payload.status) {

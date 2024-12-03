@@ -58,8 +58,6 @@ const AdminLayout = () => {
 
   useEffect(() => {
     dispatch(fetchCurrentUser()).then((res) => {
-      console.log(res);
-
       if (res.payload?.status !== true) {
         navigate('/error'); // Redirect if already authenticated
       } else {

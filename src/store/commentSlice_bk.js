@@ -37,7 +37,6 @@ export const fetchNewComment = createAsyncThunk('detail/fetchNewComment', async 
   const { rejectWithValue } = thunkAPI;
   try {
     const res = await commentService.putNewComment(data);
-    console.log(res);
 
     return { status: true, data };
   } catch (err) {
@@ -81,11 +80,7 @@ export const fetchChildComments = createAsyncThunk('detail/fetchChildComments', 
     const total = parseInt(res.headers['x-wp-total']);
     const commentRemain = total - params.currentPage * 2;
 
-    console.log('res', res);
-
     const childComments = res.data.map(mappingCommentData);
-
-    console.log('childComments', childComments);
 
     return { list: childComments, totalpages, currentPage: params.currentPage, commentRemain };
   } catch (err) {
@@ -118,15 +113,12 @@ const slice = createSlice({
         };
       })
       .addCase(fetchNewComment.fulfilled, (state, action) => {
-        console.log(action.payload);
-
         state.newComment = action.payload.data;
         state.postComments.list.unshift(action.payload.data);
       })
       .addCase(fetchNewChildComment.fulfilled, (state, action) => {
         state.newComment = action.payload.data;
         state.commentChildData.list.unshift(action.payload.data);
-        console.log(state.commentChildData.list);
       });
   },
 });

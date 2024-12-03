@@ -61,7 +61,6 @@ const AddUser = () => {
       dataFile.append('file', formData.file); // Attach the file if present
       formData.dataFile = dataFile;
     }
-    console.log('Submitted Data:', formData);
     dispatch(addUser(formData)).then((res) => {
       setLoading(false);
       if (res.payload.status) {

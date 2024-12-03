@@ -10,7 +10,7 @@ i18n
   .init({
     supportedLngs: ['en', 'vi'], // Supported languages
     fallbackLng: 'en', // Fallback language
-    debug: true, // Enable debug mode for development
+    debug: false, // Enable debug mode for development
     interpolation: {
       escapeValue: false, // React already does escaping
     },

@@ -16,8 +16,6 @@ dayjs.locale('vi');
 function CommentItem({ item, author, id }) {
   const { t } = useTranslation();
   const { publishDate, authorNickname, content, replyCount, idComment, authorThumb } = item;
-  console.log(authorThumb);
-  console.log(item);
 
   const currentUser = useSelector((state) => state.AUTH.currentUser);
   const dateFormatted = dayjs(publishDate).fromNow();
@@ -32,7 +30,6 @@ function CommentItem({ item, author, id }) {
   } = useSelector((state) => state.COMMENT.commentChildData[idComment] || {});
 
   const data = useSelector((state) => state.COMMENT.commentChildData);
-  console.log('data', data);
 
   const isShowLoadMore = replyCount - list.length > 0;
   let comments = replyCount;

@@ -80,7 +80,6 @@ export const fetchSearch = createAsyncThunk('post/fetchSearch', async (params, t
 
     // mapping: đặt lại tên, lọc lấy những field thực sự cần
     const data = res.data.map(mappingPostData);
-    console.log(data);
 
     return {
       list: data,
@@ -96,7 +95,6 @@ export const fetchSearch = createAsyncThunk('post/fetchSearch', async (params, t
 export const fetchPaging = createAsyncThunk('post/fetchPaging', async (params = {}, thunkAPI) => {
   try {
     const { page } = params;
-    console.log('page', page);
 
     const res = await postService.getAll(params);
 
@@ -137,7 +135,6 @@ export const fetchAdminPaging = createAsyncThunk('post/fetchAdminPaging', async 
 export const fetchPostById = createAsyncThunk('post/fetchPostById', async (params = {}, thunkAPI) => {
   try {
     const res = await postService.getById(params);
-    console.log('post data', res);
 
     const data = mappingPostData(res.data);
 
@@ -236,7 +233,6 @@ export const fetchAddPost = createAsyncThunk('post/fetchAddPost', async (data, t
   const { rejectWithValue, dispatch } = thunkAPI;
 
   try {
-    console.log(data);
 
     if (data.dataFile) {
       const resMedia = await authService.uploadMeida(data.dataFile);
@@ -255,7 +251,6 @@ export const fetchEditPost = createAsyncThunk('category/fetchEditPost', async (d
   const { rejectWithValue, dispatch } = thunkAPI;
 
   try {
-    console.log(data);
 
     if (data.dataFile) {
       const resMedia = await authService.uploadMeida(data.dataFile);
@@ -278,8 +273,6 @@ const slice = createSlice({
       state.postSearch.list = [];
     },
     actUpdateLang(state, action) {
-      console.log(action.payload);
-
       state.lang = action.payload;
     },
   },

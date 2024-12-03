@@ -41,9 +41,7 @@ export function mappingMenuData(item) {
 }
 
 export function mappingCommentData(item) {
-  // let childItems = item?.child_items ? item?.child_items.map(mappingMenuData) : null;
-  console.log(item);
-
+  // let childItems = item?.child_items ? item?.child_items.map(mappingMenuData) : null
   return {
     idComment: item.id,
     authorNickname: item.author_data.nickname,
