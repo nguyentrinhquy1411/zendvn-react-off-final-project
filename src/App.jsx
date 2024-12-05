@@ -14,7 +14,7 @@ import AdminDashboard from './pages/Admin/Dashboard';
 import UsersList from './pages/Admin/Profile/UsersList';
 import YourProfile from './pages/Admin/Profile/YourProfile';
 import AdminPostList from './pages/Admin/Posts/Index';
-import AdminCreatePost from './pages/Admin/Posts/Create';
+import AdminCreatePost from './pages/Admin/Posts/Create.jsx';
 import AdminEditPost from './pages/Admin/Posts/Edit';
 import CategoryPage from './pages/CategoryPage';
 import ChangePasswordPage from './pages/ChangePasswordPage';
