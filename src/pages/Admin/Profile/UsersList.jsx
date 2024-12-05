@@ -42,7 +42,12 @@ const Index = () => {
 
   useEffect(() => {
     if (usersList && usersList.length > 0) {
-      setData(usersList);
+      setData(
+        usersList.map((user) => ({
+          ...user,
+          key: user.id, // Assuming 'id' is unique for each user
+        }))
+      );
     }
   }, [usersList]);
 

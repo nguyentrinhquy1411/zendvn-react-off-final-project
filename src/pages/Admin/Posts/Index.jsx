@@ -56,6 +56,7 @@ const Index = () => {
   function mappingpostList(item) {
     return {
       id: item.id,
+      key: item.id,
       title: item.title,
       author: item.authorData.nickname,
       content: item.content,
