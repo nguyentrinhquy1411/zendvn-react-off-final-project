@@ -98,7 +98,7 @@ const AdminLayout = () => {
               <img src={logo} alt="Logo" className="header-logo" />
             </Link>
             {/* User Icon and Dropdown */}
-            <Dropdown overlay={dropdownItems} trigger={['click']}>
+            <Dropdown menu={dropdownItems} trigger={['click']}>
               <div
                 style={{
                   display: 'flex',

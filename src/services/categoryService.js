@@ -23,8 +23,6 @@ const categoryService = {
     );
   },
   updateCategory(data) {
-    console.log('id', data.id);
-
     return API.callWithToken().put(`wp/v2/categories/${data.id}`, data);
   },
   deleteCategory(id) {

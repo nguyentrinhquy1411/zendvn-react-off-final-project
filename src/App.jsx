@@ -10,7 +10,6 @@ import AdminCategoryCreate from './pages/Admin/Category/Create';
 import AdminCategoryEdit from './pages/Admin/Category/Edit';
 import EditUser from './pages/Admin/Profile/EditProfile';
 import AdminDashboard from './pages/Admin/Dashboard';
-import AddUser from './pages/Admin/Profile/addUser';
 import UsersList from './pages/Admin/Profile/UsersList';
 import YourProfile from './pages/Admin/Profile/yourProfile';
 import AdminPostList from './pages/Admin/Posts/index';

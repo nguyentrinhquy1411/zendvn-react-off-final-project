@@ -23,13 +23,8 @@ function CommentItem({ item, author, id }) {
 
   const dispatch = useDispatch();
   const articleId = useSelector((state) => state.POST.postDetail.id);
-  const {
-    list = [],
-    currentPage = 0,
-    commentRemain = 0,
-  } = useSelector((state) => state.COMMENT.commentChildData[idComment] || {});
-
   const data = useSelector((state) => state.COMMENT.commentChildData);
+  const { list = [], currentPage = 0, commentRemain = 0 } = data[idComment] || {};
 
   const isShowLoadMore = replyCount - list.length > 0;
   let comments = replyCount;
@@ -38,9 +33,9 @@ function CommentItem({ item, author, id }) {
     comments = commentRemain === replyCount ? replyCount : commentRemain;
   }
 
-  useEffect(() => {
-    dispatch(fetchChildComments({ parent: idComment, articleId }));
-  }, []);
+  // useEffect(() => {
+  //   dispatch(fetchChildComments({ parent: idComment, articleId }));
+  // }, []);
 
   function handleLoadChildComments(e) {
     dispatch(fetchChildComments({ perPage: 2, parent: idComment, articleId, currentPage: currentPage + 1 }));
