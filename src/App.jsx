@@ -14,8 +14,8 @@ import AdminDashboard from './pages/Admin/Dashboard';
 import UsersList from './pages/Admin/Profile/UsersList';
 import YourProfile from './pages/Admin/Profile/YourProfile';
 import AdminPostList from './pages/Admin/Posts/Index';
-// import AdminAddNewPost from './pages/Admin/Posts/Create';
-import AdminEditPost from './pages/Admin/Posts/Edit';
+import AdminAddNewPost from './pages/Admin/Posts/CreatePost';
+import AdminEditPost from './pages/Admin/Posts/EditPost';
 import CategoryPage from './pages/CategoryPage';
 import ChangePasswordPage from './pages/ChangePasswordPage';
 import HomePage from './pages/HomePage';
@@ -66,7 +66,7 @@ function App() {
             <Route path="profile/:id/edit" element={<EditUser />} />
             <Route path="profile/me" element={<YourProfile />} />
             <Route path="posts/" element={<AdminPostList />} />
-            {/* <Route path="posts/create" element={<AdminAddNewPost />} /> */}
+            <Route path="posts/create" element={<AdminAddNewPost />} />
             <Route path="posts/:id/edit" element={<AdminEditPost />} />
           </Route>
           <Route path="*" element={<NotFoundPage />} />

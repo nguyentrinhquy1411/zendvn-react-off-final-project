@@ -41,7 +41,7 @@ const getBase64 = (file) =>
     reader.onerror = (error) => reject(error);
   });
 
-const Create = () => {
+const CreatePost = () => {
   const [newTag, setNewTag] = useState('');
   const [selectedTags, setSelectedTags] = useState([]);
   const [fileList, setFileList] = useState([]);
@@ -280,4 +280,4 @@ const Create = () => {
   );
 };
 
-export default Create;
+export default CreatePost;

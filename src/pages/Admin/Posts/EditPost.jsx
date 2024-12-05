@@ -19,7 +19,7 @@ const schema = yup
   })
   .required();
 
-const Edit = () => {
+const EditPost = () => {
   const editData = useSelector((state) => state.POST.postSelected);
   const categories = useSelector((state) => state.CATEGORY.list);
   const tags = useSelector((state) => state.TAGS.tags);
@@ -265,4 +265,4 @@ const Edit = () => {
   );
 };
 
-export default Edit;
+export default EditPost;
