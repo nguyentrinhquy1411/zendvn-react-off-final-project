@@ -30,6 +30,7 @@ import { fetchCategories } from './store/categorySlice';
 import { fetchMenu } from './store/menuSlice';
 
 function App() {
+  // kích hoạt action
   const dispatch = useDispatch();
   const lang = useSelector((state) => state.POST.lang);
 
