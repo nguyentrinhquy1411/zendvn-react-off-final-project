@@ -12,7 +12,7 @@ import EditUser from './pages/Admin/Profile/EditProfile';
 import AddUser from './pages/Admin/Profile/AddUser';
 import AdminDashboard from './pages/Admin/Dashboard';
 import UsersList from './pages/Admin/Profile/UsersList';
-import YourProfile from './pages/Admin/Profile/yourProfile';
+import YourProfile from './pages/Admin/Profile/YourProfile';
 import AdminPostList from './pages/Admin/Posts/index';
 import AdminCreatePost from './pages/Admin/Posts/create';
 import AdminEditPost from './pages/Admin/Posts/edit';
